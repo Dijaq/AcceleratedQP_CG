@@ -1,3 +1,6 @@
+#ifndef COMPUTE_MESH_TRANFORMATION_COEFFS_MEX_H
+#define COMPUTE_MESH_TRANFORMATION_COEFFS_MEX_H
+
 #include "mex.h"
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/SparseCore>
@@ -239,3 +242,5 @@ void computeMeshTranformationCoeffsFlatenning(const MatrixXd& F, const MatrixXd&
 	mapSparseMatrixToMex(T, &(plhs[0]));
 	mapDenseMatrixToMex(areas, &(plhs[1]));
 }*/
+
+#endif
