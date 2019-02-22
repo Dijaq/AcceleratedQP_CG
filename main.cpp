@@ -8,6 +8,7 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include "libs/writeOBJ.h"
+#include "code/OptimProblemIsoDist.h"
 
 using namespace std;
 using namespace cv;
@@ -25,16 +26,29 @@ int main()
 //Seccion of read a mesh
     read_mesh_2D("data_gecko/V.csv", "data_gecko/F.csv","data_gecko/eq_lhs.csv", "data_gecko/eq_rhs.csv", mesh);
 
-    cout << "F: " << mesh.F.rows() << " - " << mesh.F.cols() << endl;
+    /*cout << "F: " << mesh.F.rows() << " - " << mesh.F.cols() << endl;
     cout << "V: " << mesh.V.rows() << " - " << mesh.V.cols() << endl;
     cout << "eq_lhs: " << mesh.eq_lhs.rows() << " - " << mesh.eq_lhs.cols() << endl;
-    cout << "eq_rhs: " << mesh.eq_rhs.rows() << " - " << mesh.eq_rhs.cols() << endl;
+    cout << "eq_rhs: " << mesh.eq_rhs.rows() << " - " << mesh.eq_rhs.cols() << endl;*/
 
-    MatrixXd nV(mesh.V.rows(), mesh.V.cols()+1);
+    update_F(mesh.F);
+
+    MatrixXd V0; 
+    OptimProblemIsoDist optimProblem(mesh, V0, 25);
+
+    cout << optimProblem.T.rows() << " - "<< optimProblem.T.cols()<<endl;
+    cout << optimProblem.areas.rows()<< " - "<< optimProblem.areas.cols() << endl;
+
+    
+   
+
+
+
+    /*MatrixXd nV(mesh.V.rows(), mesh.V.cols()+1);
     create_column_zeros(mesh.V, nV);
     mesh.V = nV;
 
-    igl::writeOBJ("prueba.obj", mesh.V, mesh.F);
+    igl::writeOBJ("prueba.obj", mesh.V, mesh.F);*/
    
 	return 0;
 }

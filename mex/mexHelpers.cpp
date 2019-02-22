@@ -7,12 +7,12 @@
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #include "mex.h"
-#include <Eigen/Dense>
-#include <Eigen/SparseCore>
+#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/SparseCore>
 
 using namespace Eigen;
 
-void mapSparseMatrixToMex(const SparseMatrix<double>& mat, mxArray **out)
+/*void mapSparseMatrixToMex(const SparseMatrix<double>& mat, mxArray **out)
 {
 	*out = mxCreateSparse(mat.rows(), mat.cols(), mat.nonZeros(), mxREAL);
 
@@ -38,4 +38,4 @@ void mapDenseMatrixToMex(const MatrixXd& mat, mxArray **out)
 	*out = mxCreateDoubleMatrix(mat.rows(), mat.cols(), mxREAL);
 	Map<MatrixXd> temp(mxGetPr(*out), mat.rows(), mat.cols());
 	temp = mat; // copy
-}
+}*/

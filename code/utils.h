@@ -150,4 +150,19 @@ void create_column_zeros(MatrixXd V, MatrixXd &new_V)
 
 }
 
+//This is because the relation between F with V is since the number 1 to the final of the list
+//But in MatrixXd "V" is saved since the coordinate 0
+void update_F(MatrixXd &F)
+{
+    //cout << "Filas: " << F.rows() << " columnas: " << F.cols() << endl;
+    for(int i=0; i<F.rows(); i++)
+    {
+        for(int j=0; j<F.cols(); j++)
+        {
+           // cout << "i: " << F(i,j) << endl;
+            F(i,j) = F(i,j)-1;
+        }
+    }
+}
+
 #endif
