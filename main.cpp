@@ -39,16 +39,14 @@ int main()
     cout << optimProblem.T.rows() << " - "<< optimProblem.T.cols()<<endl;
     cout << optimProblem.areas.rows()<< " - "<< optimProblem.areas.cols() << endl;
 
-    
    
-
-
-
     /*MatrixXd nV(mesh.V.rows(), mesh.V.cols()+1);
     create_column_zeros(mesh.V, nV);
     mesh.V = nV;
-
-    igl::writeOBJ("prueba.obj", mesh.V, mesh.F);*/
+	
+	//Meshlab Render->shader->gooch
+    igl::writeOBJ("prueba.obj", mesh.V, mesh.F);
+    */
    
 	return 0;
 }

@@ -8,6 +8,7 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include "OptimProblem.h"
 #include "../class/Param_State.h"
 #include "../mex/computeMeshTranformationCoeffsMex.h"
 
@@ -15,22 +16,19 @@ using namespace std;
 using namespace cv;
 using namespace Eigen;
 
-class OptimProblemIsoDist
+class OptimProblemIsoDist : public OptimProblem
 {
 public:
 
     //Parameter mesh
     MatrixXd V;
     MatrixXd F;
-    MatrixXd eq_lhs;
-    MatrixXd eq_rhs;
     int dim;
     int n_vert;
     int n_tri;
     VectorXd areas;
 
     //Internal Variables
-    SparseMatrix<double> T;
     int Tx;
     int R;
     int f_val;
@@ -82,7 +80,9 @@ OptimProblemIsoDist::OptimProblemIsoDist(Param_State mesh, MatrixXd V0, int init
     //See the real implementation
     this->initArapIter = initArapIter;
 
+    //Compute transformations
     computeMeshTranformationCoeffsFullDim(this->F, this->V, this->T, this->areas);
+    //set initial configuration
 }
 
 OptimProblemIsoDist::~OptimProblemIsoDist()
