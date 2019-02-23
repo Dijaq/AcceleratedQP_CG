@@ -8,6 +8,7 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include "OptimSolver.h"
 
 using namespace std;
 using namespace cv;
@@ -18,7 +19,8 @@ class OptimSolverIterative : public OptimSolver
 public:
 
 	//solver vars
-	int t = nan;
+	//int t = nan;
+	int t;
 
 	int stopCntAccept = 5;
 	int tolXCnt = 0;

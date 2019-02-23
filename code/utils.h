@@ -42,6 +42,32 @@ void loadMatrix(std::istream& inStream, MatrixXd &matrix)
     }
 }
 
+void load_SparseMatrix(std::istream& inStream, SparseMatrix<double> &matrix)
+{
+    string         line;
+    stringstream   lineStream;
+    string         value;
+
+    int wrows = 0;
+    int wcols = 0;
+    while(getline(inStream, line) )
+    {
+        lineStream.clear();
+        lineStream.str(line);
+        //read cells
+        //cout << "row=" << wrows << " lineStream.str() = " << lineStream.str() << std::endl;
+        while(getline(lineStream, value, ','))
+        {
+            if(stof(value) != 0)
+                matrix.insert(wrows, wcols) = stof(value);
+            wcols++;
+            //cout << "cell=" << value << std::endl;
+        }
+        wrows++;
+        wcols = 0;
+    }
+}
+
 void countRowsColsCsv(istream& inStream, int &rows, int &cols)
 {
     string         line;
@@ -100,8 +126,8 @@ void read_mesh_2D(string PATH_V, string PATH_F, string PATH_eq_lhs, string PATH_
     infile_eq_lhs.close();
 
     ifstream infile_eq_lhs_read(PATH_eq_lhs);
-    MatrixXd eq_lhs(rows, cols);
-    loadMatrix(infile_eq_lhs_read, eq_lhs);
+    SparseMatrix<double> eq_lhs(rows, cols);
+    load_SparseMatrix(infile_eq_lhs_read, eq_lhs);
     infile_eq_lhs_read.close();
 
 //read eq_rhs

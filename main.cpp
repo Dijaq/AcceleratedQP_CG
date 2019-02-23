@@ -9,6 +9,8 @@
 #include "opencv2/imgproc.hpp"
 #include "libs/writeOBJ.h"
 #include "code/OptimProblemIsoDist.h"
+#include "code/OptimSolverAcclQuadProx.h"
+#include <chrono>
 
 using namespace std;
 using namespace cv;
@@ -34,10 +36,52 @@ int main()
     update_F(mesh.F);
 
     MatrixXd V0; 
+    //Setup optimization problem
     OptimProblemIsoDist optimProblem(mesh, V0, 25);
 
     cout << optimProblem.T.rows() << " - "<< optimProblem.T.cols()<<endl;
     cout << optimProblem.areas.rows()<< " - "<< optimProblem.areas.cols() << endl;
+
+    //Setup solver
+    //OptimSolverAcclQuadProx optimProblemAQP("AQP", optimProblem, true, true, true);
+
+    int n = 2;
+    VectorXd x(n), b(n);
+    SparseMatrix<double> A(2,2);
+    A.insert(0,0) = 2;
+    A.insert(0,1) = -1;
+    A.insert(1,0) = 1;
+    A.insert(1,1) = 3;
+    SparseLU<SparseMatrix<double>> solver;
+
+    solver.analyzePattern(A);
+    solver.factorize(A);
+    x = solver.solve(b);
+
+    VectorXd y = b;
+    cout << solver.m_mapU;
+
+    /*cout << b << endl;
+    cout << x << endl;*/
+
+    /*auto t11 = std::chrono::high_resolution_clock::now();
+    SparseMatrix<double> T(mesh.eq_lhs.rows(),mesh.eq_lhs.cols());
+    for(int i=0; i<T.rows(); i++)
+    {
+        for(int j=0; j<T.cols(); j++)
+        {
+            if(mesh.eq_lhs(i,j) != 0)
+                T.insert(i,j) = mesh.eq_lhs(i,j);
+        }
+
+    }
+
+    auto t12 = std::chrono::high_resolution_clock::now();
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
+    cout << "Time: " << duration << endl;*/
+
+
 
    
     /*MatrixXd nV(mesh.V.rows(), mesh.V.cols()+1);

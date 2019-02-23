@@ -99,23 +99,23 @@ OptimProblemIsoDist::OptimProblemIsoDist(Param_State mesh, MatrixXd V0, int init
 
 void OptimProblemIsoDist::initVertices(MatrixXd v0)
 {
-    MatrixXd x0;
+    //MatrixXd x0;
     if(!MatrixXd_isempty(v0))
     {
-        x0 = v0;
+        this->x0 = v0;
     }
     else
     {
         //Here in our example
         /*Falta implementar revisar el codigo fuente*/
-        x0 = colStack(this->V);
+        this->x0 = colStack(this->V);
     }
 
 /*    cout << this->T.rows() << "-" << this->T.cols() << endl;
     cout << x0.rows() << "-" << x0.cols() << endl;*/
 
     //cout << "->"<<(this->T*x0).rows() <<" - " <<(this->T*x0).cols()<<endl;
-    this->Tx = this->T*x0;
+    this->Tx = this->T*this->x0;
 
     double val;
     helperFunctionalIsoDist2x2(this->Tx, this->areas, this->dim, val, this->flips);

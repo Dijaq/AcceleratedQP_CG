@@ -8,6 +8,7 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include "OptimProblemIsoDist.h"
 
 using namespace std;
 using namespace cv;
@@ -18,11 +19,12 @@ class OptimSolver
 public:
 
 	//properties
-	int optimProblem;
-	int x;
+	OptimProblemIsoDist optimProblem;
+	MatrixXd x;
 
 	//Log
-	char tag = '';
+	//char tag = '';
+	string tag = "";
 	int verbose = 2;
 
 	//default solver parameters
@@ -34,6 +36,7 @@ public:
 
 	OptimSolver();
 	~OptimSolver();
+	void initSolver(string tag, OptimProblemIsoDist optimProblem);
 };
 
 OptimSolver::OptimSolver()
@@ -41,5 +44,16 @@ OptimSolver::OptimSolver()
 
 OptimSolver::~OptimSolver()
 {}
+
+void OptimSolver::initSolver(string tag, OptimProblemIsoDist optimProblem)
+{
+	//Copy
+	this->tag = tag;
+	this->optimProblem = optimProblem;
+	this->x = optimProblem.x0;
+
+	//Report no implemented
+
+}
 
 #endif

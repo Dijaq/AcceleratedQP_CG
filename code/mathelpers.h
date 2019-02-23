@@ -77,4 +77,67 @@ SparseMatrix<double> spdiag(VectorXd vect)
 	return T;
 }
 
+//Join matrices libe [matriz1 matriz2; matriz3 matriz4]
+SparseMatrix<double> join_matrices(SparseMatrix<double> H, SparseMatrix<double> eq_lhs_transpose, SparseMatrix<double> eq_lhs, SparseMatrix<double> sparse)
+{
+	SparseMatrix<double> KKT_mat(H.rows()+eq_lhs.rows(),H.cols()+eq_lhs_transpose.cols());
+
+	int j=0;
+	for(int i=0; i<H.rows(); i++)
+	{
+		for(j=0; j<H.cols(); j++)
+		{
+			if(H.coeffRef(i,j) != 0)
+				KKT_mat.insert(i,j) = H.coeffRef(i,j);
+		}
+	}
+
+	for(int i=0; i<eq_lhs_transpose.rows(); i++)
+	{
+		for(int j=0; j<eq_lhs_transpose.cols(); j++)
+		{
+			if(eq_lhs_transpose.coeffRef(i,j) != 0)
+				KKT_mat.insert(i,j+H.cols()) = eq_lhs_transpose.coeffRef(i,j);
+		}
+	}
+
+	for(int i=0; i<eq_lhs.rows(); i++)
+	{
+		for(j=0; j<eq_lhs.cols(); j++)
+		{
+			if(eq_lhs.coeffRef(i,j) != 0)
+				KKT_mat.insert(i+H.rows(),j) = eq_lhs.coeffRef(i,j);
+		}
+	}
+
+	for(int i=0; i<sparse.rows(); i++)
+	{
+		for(int j=0; j<sparse.cols(); j++)
+		{
+			if(sparse.coeffRef(i,j) != 0)
+				KKT_mat.insert(i+H.rows(),j+H.cols()) = sparse.coeffRef(i,j);
+			//sparse(i,j);
+		}
+	}
+
+	return KKT_mat;
+
+}
+
+SparseMatrix<double> create_SparseMatrix_ones(int rows, int cols)
+{
+	SparseMatrix<double> ones(rows, cols);
+	int menor = 0;
+	if(rows < cols)
+		menor = rows;
+	else
+		menor = cols;
+	for(int i=0; i<menor; i++)
+	{
+		ones.insert(i,i) = 1;
+	}
+
+	return ones;
+}
+
 #endif // MATHELPERS

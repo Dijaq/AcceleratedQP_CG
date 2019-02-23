@@ -9,7 +9,7 @@ public:
 
 	Eigen::MatrixXd V;
 	Eigen::MatrixXd F;
-	Eigen::MatrixXd eq_lhs;
+	Eigen::SparseMatrix<double> eq_lhs;//This is a sparse matrix
 	Eigen::MatrixXd eq_rhs;
 
 	Param_State();

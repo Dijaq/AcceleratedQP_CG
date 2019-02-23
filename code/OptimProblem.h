@@ -17,12 +17,12 @@ class OptimProblem
 {
 public:
 	SparseMatrix<double> T;
-	MatrixXd eq_lhs;
+	SparseMatrix<double> eq_lhs;//this is a sparse matrix
 	MatrixXd eq_rhs;
-	int x0;
+	MatrixXd x0;
 	int n_vars;
 	int n_eq;
-	MatrixXd H;
+	SparseMatrix<double> H;
 
 	//Parameters
 	int verbose = 2;
