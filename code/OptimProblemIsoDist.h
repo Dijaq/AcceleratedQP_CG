@@ -88,11 +88,13 @@ OptimProblemIsoDist::OptimProblemIsoDist(Param_State mesh, MatrixXd V0, int init
     this->initArapIter = initArapIter;
 
     //Compute transformations
-    computeMeshTranformationCoeffsFullDim(this->F, this->V, this->T, this->areas);
+    computeMeshTranformationCoeffsFullDim(this->F, this->V, this->T, this->areas);//Finished
     //set initial configuration
-    initVertices(V0);
+    initVertices(V0);//Falta
     //set quadratic proxy
-    setQuadraticProxy();
+    setQuadraticProxy();//Finished
+    //Finish construction
+    initProblem();//Finished
 }
 
 void OptimProblemIsoDist::initVertices(MatrixXd v0)
