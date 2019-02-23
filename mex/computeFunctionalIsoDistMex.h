@@ -17,7 +17,7 @@
 
 using namespace Eigen;
 
-void helperFcuntionalIsoDist2x2(VectorXd &pA, const VectorXd &areas, int dim, double& val, bool& flips)
+void helperFunctionalIsoDist2x2(VectorXd &pA, const VectorXd &areas, int dim, double& val, bool& flips)
 {
 	int block_size = dim*dim;
 	int num_blocks = pA.size() / block_size;

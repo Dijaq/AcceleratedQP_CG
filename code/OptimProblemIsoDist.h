@@ -54,6 +54,7 @@ public:
     OptimProblemIsoDist(Param_State mesh, MatrixXd V0, int initArapIter);
     ~OptimProblemIsoDist();
     void initVertices(MatrixXd V0);
+    void setQuadraticProxy();
 };
 
 OptimProblemIsoDist::OptimProblemIsoDist()
@@ -90,6 +91,8 @@ OptimProblemIsoDist::OptimProblemIsoDist(Param_State mesh, MatrixXd V0, int init
     computeMeshTranformationCoeffsFullDim(this->F, this->V, this->T, this->areas);
     //set initial configuration
     initVertices(V0);
+    //set quadratic proxy
+    setQuadraticProxy();
 }
 
 void OptimProblemIsoDist::initVertices(MatrixXd v0)
@@ -113,11 +116,18 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
     this->Tx = this->T*x0;
 
     double val;
-    helperFcuntionalIsoDist2x2(this->Tx, this->areas, this->dim, val, this->flips);
+    helperFunctionalIsoDist2x2(this->Tx, this->areas, this->dim, val, this->flips);
     //Fix if there are flips
     if(this->flips)
     {
-
+        cout << "Hay flips" << endl;
+        //Project onto BD
+        /*Falta implementar SOLVER PROJECT BD*/
+    }
+    else
+    {
+        //No hace nada
+        cout << "No hay flips" << endl;
     }
 
     //ProgBar is only for matlab
@@ -125,6 +135,20 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
 
     //Check if the solution is orientation preserving
     //this->Tx = this->T*colStack(x0);
+}
+
+void OptimProblemIsoDist::setQuadraticProxy()
+{
+    //cout << "T: " << this->T.rows() << endl;
+    //cout << "T: " << this->T.cols() << endl;
+    VectorXd ar = this->areas;
+    VectorXd ones = VectorXd::Ones(pow(this->dim,2),1);
+    VectorXd_sqrt(ar);
+
+    SparseMatrix<double> wT = spdiag(kron(ar, ones))*this->T;
+    this->H = 2*(wT.transpose()*wT);
+    //cout << "k: "<<this->H.cols() << endl;
+
 }
 
 #endif
