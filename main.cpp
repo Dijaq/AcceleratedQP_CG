@@ -42,24 +42,44 @@ int main()
     cout << optimProblem.T.rows() << " - "<< optimProblem.T.cols()<<endl;
     cout << optimProblem.areas.rows()<< " - "<< optimProblem.areas.cols() << endl;
 
+
+    MatrixXd A(2,2);
+    A << 2,-1,1,1;
+    FullPivLU<Ref<MatrixXd> > lu(A);
+    //lu.compute();
+    //cout << lu << endl;
+
+    //cout << A << endl;  
+
+
+
     //Setup solver
     //OptimSolverAcclQuadProx optimProblemAQP("AQP", optimProblem, true, true, true);
 
-    int n = 2;
+    /*int n = 3;
     VectorXd x(n), b(n);
-    SparseMatrix<double> A(2,2);
+    SparseMatrix<double> A(3,3);
     A.insert(0,0) = 2;
     A.insert(0,1) = -1;
+    A.insert(0,2) = -8;
     A.insert(1,0) = 1;
     A.insert(1,1) = 3;
+    A.insert(1,2) = -3;
+    A.insert(2,0) = 7;
+    A.insert(2,1) = 4;
+    A.insert(2,2) = -6;
+
     SparseLU<SparseMatrix<double>> solver;
 
     solver.analyzePattern(A);
     solver.factorize(A);
     x = solver.solve(b);
 
-    VectorXd y = b;
-    cout << solver.m_mapU;
+    cout << solver(0,0) << endl;
+    cout << solver.cols() << endl;*/
+
+    /*VectorXd y = b;
+    cout << solver.m_mapU;*/
 
     /*cout << b << endl;
     cout << x << endl;*/
