@@ -47,6 +47,8 @@ int main()
     //Setup solver
     OptimSolverAcclQuadProx optimProblemAQP("AQP", optimProblem, true, true, true);
 
+    
+
     /*int n = 3;
     VectorXd x(n), b(n);
     SparseMatrix<double> A(3,3);
@@ -107,29 +109,13 @@ int main()
 }
 
 
-    /*MatrixXd A(2,2);
-    A << 0,-1,2,3;
+   /*MatrixXd A(3,3);
+    A << 1,4,-3,-2, 8, 5, 3, 4, 7;
     MatrixXd desLU = A;
     FullPivLU<Ref<MatrixXd> > lu(desLU);
-    SparseMatrix<double> A(2,2);
-    A.insert(0,0) = 2;
-    A.insert(0,1) = -1;
-    A.insert(1,0) = 1;
-    A.insert(1,1) = 1;
-    FullPivLU<Ref<SparseMatrix> > lu(A); 
-    //FullPivLU<MatrixXd> lu = FullPivLU<MatrixXd>(A);
+    
     cout << A << endl;
     cout << desLU << endl;
     MatrixXd p = lu.permutationP();
     MatrixXd q = lu.permutationQ();
-    MatrixXd L = lu.matrixL();
-    MatrixXd Y = lu.matrixU();
-    cout << p << endl;
-    cout << q << endl;
-    cout << A*p << endl;
-    cout << A*q << endl;
-    //cout << A.permutationP() << endl;
-    //lu.compute();
-    //cout << lu << endl;
-
     //cout << A << endl;  */

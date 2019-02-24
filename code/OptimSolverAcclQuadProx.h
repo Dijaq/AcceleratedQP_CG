@@ -11,6 +11,7 @@
 #include <string>
 #include "math.h"
 #include <chrono>
+#include "../class/DSparseLU.h"
 #include "../class/Param_State.h"
 #include "../mex/computeMeshTranformationCoeffsMex.h"
 #include "OptimSolverIterative.h"
@@ -80,11 +81,11 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     if(this->useQuadProxy)
     {
         SparseMatrix<double> spar(optimProblem.n_eq, optimProblem.n_eq);
-        auto t11 = std::chrono::high_resolution_clock::now();
+        //auto t11 = std::chrono::high_resolution_clock::now();
         KKT_mat = join_matrices(optimProblem.H, optimProblem.eq_lhs.transpose(), optimProblem.eq_lhs, spar);
-        auto t12 = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
-        cout << "Time: " << duration << endl;
+        //auto t12 = std::chrono::high_resolution_clock::now();
+        //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
+        //cout << "Time: " << duration << endl;
         /*cout << optimProblem.H.rows() << " - " << optimProblem.H.cols()<<endl;
         cout << optimProblem.eq_lhs.rows() << " - " << optimProblem.eq_lhs.cols() <<endl;
         cout << optimProblem.n_eq << endl;*/
@@ -95,6 +96,22 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
         SparseMatrix<double> ones = create_SparseMatrix_ones(optimProblem.H.rows(), optimProblem.H.cols());
         KKT_mat = join_matrices(ones, optimProblem.eq_lhs.transpose(), optimProblem.eq_lhs, spar);
     }
+
+    SparseMatrix<double> smatrix(3,3);
+    smatrix.insert(2,1) = -5;
+    smatrix.insert(0,0) = 3;
+    smatrix.insert(0,2) = 2;
+    smatrix.insert(1,0) = 1;
+    smatrix.insert(1,1) = -2;
+
+    MatrixXd matrix = smatrix;
+    //cout << matrix << endl;
+    DSparseLU sLU(matrix);
+    cout << sLU.U << endl;
+    cout << sLU.L << endl;
+    cout << sLU.P << endl;
+    cout << sLU.Q << endl;
+    
 
     //this->KKT = SparseLU(KKT_mat);
 
