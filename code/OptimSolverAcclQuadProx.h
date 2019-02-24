@@ -10,6 +10,7 @@
 #include <sstream>
 #include <string>
 #include "math.h"
+#include <chrono>
 #include "../class/Param_State.h"
 #include "../mex/computeMeshTranformationCoeffsMex.h"
 #include "OptimSolverIterative.h"
@@ -79,7 +80,11 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     if(this->useQuadProxy)
     {
         SparseMatrix<double> spar(optimProblem.n_eq, optimProblem.n_eq);
+        auto t11 = std::chrono::high_resolution_clock::now();
         KKT_mat = join_matrices(optimProblem.H, optimProblem.eq_lhs.transpose(), optimProblem.eq_lhs, spar);
+        auto t12 = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
+        cout << "Time: " << duration << endl;
         /*cout << optimProblem.H.rows() << " - " << optimProblem.H.cols()<<endl;
         cout << optimProblem.eq_lhs.rows() << " - " << optimProblem.eq_lhs.cols() <<endl;
         cout << optimProblem.n_eq << endl;*/

@@ -82,7 +82,43 @@ SparseMatrix<double> join_matrices(SparseMatrix<double> H, SparseMatrix<double> 
 {
 	SparseMatrix<double> KKT_mat(H.rows()+eq_lhs.rows(),H.cols()+eq_lhs_transpose.cols());
 
-	int j=0;
+	for(int i=0; i<H.outerSize(); i++)
+	{
+		for(SparseMatrix<double>::InnerIterator it(H, i); it; ++it)
+		{
+			KKT_mat.insert(it.row(), it.col()) = it.value();
+			/*cout << "value: " << it.value() << endl;
+			cout << "row: "<< it.row() << endl;
+			cout << "col: "<< it.col() << endl;
+			cout << it.index() << endl;*/
+		}
+	}
+
+	for(int i=0; i<eq_lhs_transpose.outerSize(); i++)
+	{
+		for(SparseMatrix<double>::InnerIterator it(eq_lhs_transpose, i); it; ++it)
+		{
+			KKT_mat.insert(it.row(), it.col()+H.cols()) = it.value();
+		}
+	}
+
+	for(int i=0; i<eq_lhs.outerSize(); i++)
+	{
+		for(SparseMatrix<double>::InnerIterator it(eq_lhs, i); it; ++it)
+		{
+			KKT_mat.insert(it.row()+H.rows(), it.col()) = it.value();
+		}
+	}
+
+	for(int i=0; i<sparse.outerSize(); i++)
+	{
+		for(SparseMatrix<double>::InnerIterator it(sparse, i); it; ++it)
+		{
+			KKT_mat.insert(it.row()+H.rows(), it.col()+H.cols()) = it.value();
+		}
+	}
+
+	/*int j=0;
 	for(int i=0; i<H.rows(); i++)
 	{
 		for(j=0; j<H.cols(); j++)
@@ -118,7 +154,7 @@ SparseMatrix<double> join_matrices(SparseMatrix<double> H, SparseMatrix<double> 
 				KKT_mat.insert(i+H.rows(),j+H.cols()) = sparse.coeffRef(i,j);
 			//sparse(i,j);
 		}
-	}
+	}*/
 
 	return KKT_mat;
 
