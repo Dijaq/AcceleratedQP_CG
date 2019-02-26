@@ -20,7 +20,7 @@ public:
 
 	//solver vars
 	//int t = nan;
-	int t;
+	float t;
 
 	int stopCntAccept = 5;
 	int tolXCnt = 0;

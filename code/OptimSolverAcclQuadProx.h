@@ -25,11 +25,12 @@ class OptimSolverAcclQuadProx : public OptimSolverIterative
 public:
 
     //Parameters
-    int x_prev;
+    MatrixXd x_prev;
     int y;
     int p;
-    SparseMatrix<double> KKT;
-    int KKT_rhs;
+    //SparseMatrix<double> KKT;
+    DSparseLU KKT;
+    MatrixXd KKT_rhs;
     int p_lambda;
     int y_f;
     int y_fgrad;
@@ -41,7 +42,7 @@ public:
     bool useAcceleration;
     bool useQuadProxy;
     bool useLineSearch;
-    int theta; // = [];
+    float theta; // = [];
 
     //Step size limiting
     bool useAccelerationStepSizeLimit = true;
@@ -60,6 +61,7 @@ public:
     OptimSolverAcclQuadProx();
     OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist optimProblem, bool useAccelaration, bool useQuadProxy, bool useLineSearch);
     ~OptimSolverAcclQuadProx();
+    void setKappa(float kappa);
 };
 
 OptimSolverAcclQuadProx::OptimSolverAcclQuadProx()
@@ -97,7 +99,7 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
         KKT_mat = join_matrices(ones, optimProblem.eq_lhs.transpose(), optimProblem.eq_lhs, spar);
     }
 
-    SparseMatrix<double> smatrix(3,3);
+    /*SparseMatrix<double> smatrix(3,3);
     smatrix.insert(2,1) = -5;
     smatrix.insert(0,0) = 3;
     smatrix.insert(0,2) = 2;
@@ -105,23 +107,32 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     smatrix.insert(1,1) = -2;
 
     MatrixXd matrix = smatrix;
-    //cout << matrix << endl;
     DSparseLU sLU(matrix);
     cout << smatrix << endl;
     cout << sLU.U << endl;
     cout << sLU.L << endl;
     cout << sLU.P << endl;
-    cout << sLU.Q << endl;    
+    cout << sLU.Q << endl;*/    
 
-    //this->KKT = SparseLU(KKT_mat);
+    MatrixXd matrix = KKT_mat;
+    DSparseLU sparseLU(matrix);
+    this->KKT = sparseLU;
+    //this->KKT = SparseLU(matrix);
 
     //init internal variables
-
+    MatrixXd initZeros(this->optimProblem.n_vars+this->optimProblem.n_eq,1);
+    this->KKT_rhs = initZeros;
+    this->x_prev = this->x;
+    this->t = 1/this->lineSearchStepSizeMemoryFactor;
     //Store init time
     //t_init = toc(t_init_start)
 }
 
-OptimSolverAcclQuadProx::~OptimSolverAcclQuadProx()
-{}
+OptimSolverAcclQuadProx::~OptimSolverAcclQuadProx(){}
+
+void OptimSolverAcclQuadProx::setKappa(float kappa)
+{
+    this->theta = (1-sqrt(1/kappa))/(1+sqrt(1/kappa));
+}
 
 #endif

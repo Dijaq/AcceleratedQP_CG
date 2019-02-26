@@ -46,6 +46,12 @@ int main()
 
     //Setup solver
     OptimSolverAcclQuadProx optimProblemAQP("AQP", optimProblem, true, true, true);
+    optimProblemAQP.setKappa(1000);
+
+    vector<OptimSolverAcclQuadProx> listOptimSolverAccQuadProx;
+    listOptimSolverAccQuadProx.push_back(optimProblemAQP);
+
+    int n_solvers = listOptimSolverAccQuadProx.size();
 
     
 
