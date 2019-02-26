@@ -10,6 +10,8 @@
 #include <string>
 #include "OptimProblem.h"
 #include "mathelpers.h"
+#include <limits>
+#include "utils.h"
 #include "../class/Param_State.h"
 #include "../mex/computeMeshTranformationCoeffsMex.h"
 #include "../mex/computeFunctionalIsoDistMex.h"
@@ -34,8 +36,8 @@ public:
     //Internal Variables
     VectorXd  Tx;
     int R;
-    int f_val;
-    int Tx_grad;
+    double f_val;
+    VectorXd Tx_grad;
     bool flips;
     int localHess;
 
@@ -57,6 +59,9 @@ public:
     void initVertices(MatrixXd V0);
     void setQuadraticProxy();
     double getMaxStep(MatrixXd x, MatrixXd p);
+    void evaluateGrad(MatrixXd x, double &f, VectorXd &f_grad);
+    void evaluateValueGrad(MatrixXd x, double &f, VectorXd &f_grad);
+    void evaluateFunctional(MatrixXd x, bool doVal, bool doGrad, bool doHess, double &f, VectorXd &f_grad);
 };
 
 OptimProblemIsoDist::OptimProblemIsoDist()
@@ -166,6 +171,67 @@ double OptimProblemIsoDist::getMaxStep(MatrixXd x, MatrixXd p)
     //cout <<"x: " <<x.cols()<<endl;
     computeInjectiveStepSize_2d(this->F, x, p, this->maxStepTol, t_max);
     return t_max;
+}
+
+void OptimProblemIsoDist::evaluateGrad(MatrixXd x, double &f, VectorXd &f_grad)
+{
+    evaluateFunctional(x, false, true, false, f, f_grad);
+}
+
+void OptimProblemIsoDist::evaluateValueGrad(MatrixXd x, double &f, VectorXd &f_grad)
+{
+    evaluateFunctional(x, true, true, false, f, f_grad);
+}
+
+void OptimProblemIsoDist::evaluateFunctional(MatrixXd x, bool doVal, bool doGrad, bool doHess, double &f, VectorXd &f_grad)
+{
+    this->Tx = this->T*x;
+    this->Tx_grad = this->Tx;
+    if(doVal || doGrad)
+    {
+        helperFunctionalIsoDist2x2(this->Tx_grad, this->areas, this->dim, this->f_val, this->flips);
+
+        if(this->flips)
+            this->f_val = numeric_limits<int>::max();
+    }
+
+    if(doVal)
+    {
+        f = f_val;
+    }
+
+    if(doGrad)
+    {
+        //print_dimensions("->", this->Tx_grad);
+        //print_dimensions("->", this->T);
+        f_grad = (this->Tx_grad.transpose()*this->T).transpose();
+    }
+
+    if(doHess)
+    {
+        cout << "The function computeHessianIsoDistMex is not implement by the author" << endl;
+        /*n_arg = n_arg + 1;
+        obj.localHess = computeHessianIsoDistMex(obj.Tx, obj.areas, obj.dim);
+        varargout{n_arg} = obj.T'*obj.localHess*obj.T;*/
+    }
+
+    /*
+    % return
+    n_arg = 0;
+    if doVal
+        n_arg = n_arg + 1;
+        varargout{n_arg} = obj.f_val;
+    end
+    if doGrad
+        n_arg = n_arg + 1;
+        varargout{n_arg} = (obj.Tx_grad'*obj.T)';
+    end
+    if doHess
+        n_arg = n_arg + 1;
+        obj.localHess = computeHessianIsoDistMex(obj.Tx, obj.areas, obj.dim);
+        varargout{n_arg} = obj.T'*obj.localHess*obj.T;
+    end
+    */
 }
 
 #endif

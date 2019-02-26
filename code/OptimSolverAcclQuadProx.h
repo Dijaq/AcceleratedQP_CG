@@ -32,8 +32,8 @@ public:
     DSparseLU KKT;
     MatrixXd KKT_rhs;
     int p_lambda;
-    int y_f;
-    int y_fgrad;
+    double y_f;
+    VectorXd y_fgrad;
     int y_start;
     int t_init; //Store initialization time
     int f_count = 0; //Store function evaluation count
@@ -161,15 +161,21 @@ void OptimSolverAcclQuadProx::iterate()
     //Use Acceleration
     if(this->useAcceleration)
     {
+        //cout << "useAcceleration" << endl;
         if(this->useAccelerationStepSizeLimit)
         {
-            this->accelerationStepSize = min(this->theta, this->accelarationStepSizeLimitFactor*this->optimProblem.getMaxStep(this->x, (this->x-this->x_prev)));
+            MatrixXd tempX = this->x;
+            MatrixXd tempX_prev = this->x_prev;
+            matrix_reshape(tempX, tempX.rows()/this->optimProblem.dim, this->optimProblem.dim);
+            matrix_reshape(tempX_prev,tempX_prev.rows()/this->optimProblem.dim, this->optimProblem.dim);
+            
+            this->accelerationStepSize = min(this->theta, this->accelarationStepSizeLimitFactor*this->optimProblem.getMaxStep(tempX, (tempX-tempX_prev)));
         }
         else
         {
             this->accelerationStepSize = this->theta;
-            this->y = this->x+this->accelerationStepSize*(this->x-this->x_prev);
         }
+        this->y = this->x+this->accelerationStepSize*(this->x-this->x_prev);
     }
     else
     {
@@ -179,12 +185,17 @@ void OptimSolverAcclQuadProx::iterate()
     //Quadratic proxy minimization
     if(this->useLineSearch)
     {
-        cout << "useLineSearch" << endl;
+        //cout << "useLineSearch" << endl;
+        this->optimProblem.evaluateValueGrad(this->y, this->y_f, this->y_fgrad);
+        this->f_count++;
     }
     else
     {
-
+        this->optimProblem.evaluateGrad(this->y, this->y_f, this->y_fgrad);
+        this->f_count++;
     }
+
+    //print_dimensions("->", this->KKT_rhs);
 
     //Initialize step size
     if(this->useLineSearchStepSizeMemory)

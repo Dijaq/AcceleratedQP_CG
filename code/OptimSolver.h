@@ -8,6 +8,8 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include "mathelpers.h"
+#include "utils.h"
 #include "OptimProblemIsoDist.h"
 
 using namespace std;
@@ -20,7 +22,7 @@ public:
 
 	//properties
 	OptimProblemIsoDist optimProblem;
-	MatrixXd x;
+	MatrixXd x; //This is a matrix of 1 column
 
 	//Log
 	//char tag = '';
@@ -50,8 +52,7 @@ void OptimSolver::initSolver(string tag, OptimProblemIsoDist optimProblem)
 	//Copy
 	this->tag = tag;
 	this->optimProblem = optimProblem;
-	this->x = optimProblem.x0;
-
+	this->x = colStack(optimProblem.x0);
 	//Report no implemented
 
 }

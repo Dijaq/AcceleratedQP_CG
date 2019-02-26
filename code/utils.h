@@ -207,4 +207,9 @@ void matrix_reshape(MatrixXd &matrix, int rows, int cols)
 
 }
 
+void print_dimensions(string etiqueta, MatrixXd x)
+{
+    cout << etiqueta <<" rows: " << x.rows() << ", cols: " << x.cols() << endl;
+}
+
 #endif

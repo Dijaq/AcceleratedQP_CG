@@ -42,8 +42,6 @@ int main()
     cout << optimProblem.T.rows() << " - "<< optimProblem.T.cols()<<endl;
     cout << optimProblem.areas.rows()<< " - "<< optimProblem.areas.cols() << endl;
 
-
-
     //Setup solver
     OptimSolverAcclQuadProx optimProblemAQP("AQP", optimProblem, true, true, true);
     optimProblemAQP.setKappa(1000);
