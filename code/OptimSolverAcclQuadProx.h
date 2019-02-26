@@ -26,7 +26,7 @@ public:
 
     //Parameters
     MatrixXd x_prev;
-    int y;
+    MatrixXd y;
     int p;
     //SparseMatrix<double> KKT;
     DSparseLU KKT;
@@ -62,6 +62,9 @@ public:
     OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist optimProblem, bool useAccelaration, bool useQuadProxy, bool useLineSearch);
     ~OptimSolverAcclQuadProx();
     void setKappa(float kappa);
+    void solveTol(float TolX, float TolFun, int max_iter);
+    void iterate();
+    double min(double value1, double value2);
 };
 
 OptimSolverAcclQuadProx::OptimSolverAcclQuadProx()
@@ -133,6 +136,91 @@ OptimSolverAcclQuadProx::~OptimSolverAcclQuadProx(){}
 void OptimSolverAcclQuadProx::setKappa(float kappa)
 {
     this->theta = (1-sqrt(1/kappa))/(1+sqrt(1/kappa));
+}
+
+void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
+{
+    //This is only logs is not necesarialy for the implementation
+    //logInit();
+    //logState();
+
+    //run num_iter iteration
+    //for(int i=0; i<max_iter; i++)
+    for(int i=0; i<1; i++)
+    {
+        //this is the time to start no necesarialy
+        //t_iter_start = tic
+
+        iterate();
+        //Stop criteria
+    }
+}
+
+void OptimSolverAcclQuadProx::iterate()
+{
+    //Use Acceleration
+    if(this->useAcceleration)
+    {
+        if(this->useAccelerationStepSizeLimit)
+        {
+            this->accelerationStepSize = min(this->theta, this->accelarationStepSizeLimitFactor*this->optimProblem.getMaxStep(this->x, (this->x-this->x_prev)));
+        }
+        else
+        {
+            this->accelerationStepSize = this->theta;
+            this->y = this->x+this->accelerationStepSize*(this->x-this->x_prev);
+        }
+    }
+    else
+    {
+        this->y = this->x;
+    }
+
+    //Quadratic proxy minimization
+    if(this->useLineSearch)
+    {
+        cout << "useLineSearch" << endl;
+    }
+    else
+    {
+
+    }
+
+    //Initialize step size
+    if(this->useLineSearchStepSizeMemory)
+    {
+        cout << "useLineSearchStepSizeMemory" << endl;
+    }
+    else
+    {
+
+    }
+
+    if(this->useLineSearchStepSizeLimit)
+    {
+        cout << "useLineSearchStepLimit" << endl;
+    }
+    else
+    {
+
+    }
+
+    //Line search
+    if(this->useLineSearch)
+    {
+        cout << "useLineSearch" << endl;
+    }
+
+    //Update values
+
+}
+
+double OptimSolverAcclQuadProx::min(double value1, double value2)
+{
+    if(value1 < value2)
+        return value1;
+    else
+        return value2;
 }
 
 #endif

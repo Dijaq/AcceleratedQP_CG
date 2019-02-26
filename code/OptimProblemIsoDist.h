@@ -13,6 +13,7 @@
 #include "../class/Param_State.h"
 #include "../mex/computeMeshTranformationCoeffsMex.h"
 #include "../mex/computeFunctionalIsoDistMex.h"
+#include "../mex/computeInjectiveStepSizeMex.h"
 
 using namespace std;
 using namespace cv;
@@ -55,6 +56,7 @@ public:
     ~OptimProblemIsoDist();
     void initVertices(MatrixXd V0);
     void setQuadraticProxy();
+    double getMaxStep(MatrixXd x, MatrixXd p);
 };
 
 OptimProblemIsoDist::OptimProblemIsoDist()
@@ -102,20 +104,24 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
     //MatrixXd x0;
     if(!MatrixXd_isempty(v0))
     {
+        cout << "No necesary code" << endl;
         this->x0 = v0;
     }
     else
     {
         //Here in our example
-        /*Falta implementar revisar el codigo fuente*/
         this->x0 = colStack(this->V);
+        /*Falta implementar revisar el codigo fuente*/
+
+        matrix_reshape(this->x0, this->n_vert, this->dim);
+        //cout << "size: "<<this->x0.rows() << "-"<<this->x0.cols() << endl;
     }
 
 /*    cout << this->T.rows() << "-" << this->T.cols() << endl;
     cout << x0.rows() << "-" << x0.cols() << endl;*/
 
-    //cout << "->"<<(this->T*x0).rows() <<" - " <<(this->T*x0).cols()<<endl;
-    this->Tx = this->T*this->x0;
+    //cout << "->"<<(this->T).rows() <<" - " <<(this->T).cols()<<endl;
+    this->Tx = this->T*colStack(this->x0);
 
     double val;
     helperFunctionalIsoDist2x2(this->Tx, this->areas, this->dim, val, this->flips);
@@ -151,6 +157,15 @@ void OptimProblemIsoDist::setQuadraticProxy()
     this->H = 2*(wT.transpose()*wT);
     //cout << "k: "<<this->H.cols() << endl;
 
+}
+
+double OptimProblemIsoDist::getMaxStep(MatrixXd x, MatrixXd p)
+{
+
+    double t_max;
+    //cout <<"x: " <<x.cols()<<endl;
+    computeInjectiveStepSize_2d(this->F, x, p, this->maxStepTol, t_max);
+    return t_max;
 }
 
 #endif

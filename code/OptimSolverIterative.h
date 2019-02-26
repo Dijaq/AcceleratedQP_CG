@@ -18,6 +18,10 @@ class OptimSolverIterative : public OptimSolver
 {
 public:
 
+	//value logs
+	int iter;
+	int t_iter;
+
 	//solver vars
 	//int t = nan;
 	float t;
@@ -28,6 +32,8 @@ public:
 
 	OptimSolverIterative();
 	~OptimSolverIterative();
+	void logInit();
+	void logState();
 };
 
 OptimSolverIterative::OptimSolverIterative()
@@ -35,5 +41,18 @@ OptimSolverIterative::OptimSolverIterative()
 
 OptimSolverIterative::~OptimSolverIterative()
 {}
+
+
+void OptimSolverIterative::logInit()
+{
+	/*this->iter = 0;
+	this->t_iter = 0;
+	this-tag = */
+}
+
+void OptimSolverIterative::logState()
+{
+
+}
 
 #endif

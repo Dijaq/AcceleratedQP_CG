@@ -191,4 +191,20 @@ void update_F(MatrixXd &F)
     }
 }
 
+//Matrix should be a stach for for easy reshape
+void matrix_reshape(MatrixXd &matrix, int rows, int cols)
+{
+    MatrixXd reshapeM(rows, cols);
+    for(int j=0; j<cols; j++)
+    {
+        for(int i=0; i<rows; i++)
+        {
+            reshapeM(i,j) = matrix(i+j*rows,0);
+        }
+    }
+
+    matrix = reshapeM;
+
+}
+
 #endif
