@@ -53,6 +53,10 @@ DSparseLU::DSparseLU(MatrixXd smatrix)
 			double tempP = this->P(k,j);
 			this->P(k,j) = this->P(fila, j);
 			this->P(fila, j) = tempP;
+
+			/*double tempL = this->L(k,j);
+			this->L(k,j) = this->L(fila, j);
+			this->L(fila, j) = tempL;*/
 		}
 
 		//cout << smatrix << endl;
@@ -64,8 +68,9 @@ DSparseLU::DSparseLU(MatrixXd smatrix)
 				{
 					//cout << "i: " << i << " j: " << j << " values: " << smatrix(i,k) <<" - " <<smatrix(k,k) << " - " <<smatrix(k,j) << endl;
 					this->U(i,j) = this->U(i,j)-(first/this->U(k,k))*this->U(k,j);
-					this->L(i,j) = this->L(i,j)-(first/this->L(k,k))*this->L(k,j);
+					
 				}
+			this->L(i,k) = (first/this->U(k,k));
 		}
 	}
 

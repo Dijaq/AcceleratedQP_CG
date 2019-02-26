@@ -107,11 +107,11 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     MatrixXd matrix = smatrix;
     //cout << matrix << endl;
     DSparseLU sLU(matrix);
+    cout << smatrix << endl;
     cout << sLU.U << endl;
     cout << sLU.L << endl;
     cout << sLU.P << endl;
-    cout << sLU.Q << endl;
-    
+    cout << sLU.Q << endl;    
 
     //this->KKT = SparseLU(KKT_mat);
 
