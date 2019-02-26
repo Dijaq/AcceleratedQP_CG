@@ -31,7 +31,7 @@ DSparseLU::DSparseLU(MatrixXd smatrix)
 
 	for(int k=0; k<this->U.rows(); k++)
 	{
-		//Pivote Parcial
+		//Pivote Parcial, Calculate change
 		double mayor = abs(this->U(k,k));
 		int fila = k;
 		for(int i=k+1; i<this->U.rows(); i++)
@@ -43,7 +43,7 @@ DSparseLU::DSparseLU(MatrixXd smatrix)
 			}
 		}
 
-		//Change Filas
+		//Change in U and L
 		for(int j=0; j<this->U.cols(); j++)
 		{
 			double tempU = this->U(k,j);
@@ -54,9 +54,12 @@ DSparseLU::DSparseLU(MatrixXd smatrix)
 			this->P(k,j) = this->P(fila, j);
 			this->P(fila, j) = tempP;
 
-			/*double tempL = this->L(k,j);
-			this->L(k,j) = this->L(fila, j);
-			this->L(fila, j) = tempL;*/
+			if(k > j)
+			{
+				double tempL = this->L(k,j);
+				this->L(k,j) = this->L(fila, j);
+				this->L(fila, j) = tempL;
+			}
 		}
 
 		//cout << smatrix << endl;
