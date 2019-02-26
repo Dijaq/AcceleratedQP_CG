@@ -195,7 +195,17 @@ void OptimSolverAcclQuadProx::iterate()
         this->f_count++;
     }
 
-    //print_dimensions("->", this->KKT_rhs);
+    //print_dimensions("->", this->KKT_rhs);//Dimension of 1728
+    //print_dimensions("->", this->y_fgrad);
+    //cout << this->optimProblem.n_vars << endl;
+    for(int i=0; i<this->optimProblem.n_vars; i++)
+    {
+        this->KKT_rhs(i,0) = -this->y_fgrad(i,0);
+    }
+
+    print_dimensions("->", this->KKT_rhs);
+    print_dimensions("->", this->KKT.L);
+    print_dimensions("->", this->KKT.U);
 
     //Initialize step size
     if(this->useLineSearchStepSizeMemory)
