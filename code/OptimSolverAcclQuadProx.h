@@ -161,7 +161,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 
     //run num_iter iteration
     //for(int i=0; i<max_iter; i++)
-    for(int i=0; i<1; i++)
+    for(int i=0; i<10; i++)
     {
         //this is the time to start no necesarialy
         //t_iter_start = tic

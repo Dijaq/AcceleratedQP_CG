@@ -4,6 +4,8 @@
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Sparse>
 #include <math.h>
+#include "utils.h"
+#include <chrono>
 
 using namespace std;
 using namespace Eigen;
@@ -160,6 +162,29 @@ SparseMatrix<double> join_matrices(SparseMatrix<double> H, SparseMatrix<double> 
 
 }
 
+SparseMatrix<double> join_matrices_2x1(SparseMatrix<double> A, SparseMatrix<double> B)
+{
+	SparseMatrix<double> KKT_mat(A.rows()+B.rows(),A.cols());
+
+	for(int i=0; i<A.outerSize(); i++)
+	{
+		for(SparseMatrix<double>::InnerIterator it(A, i); it; ++it)
+		{
+			KKT_mat.insert(it.row(), it.col()) = it.value();
+		}
+	}
+
+	for(int i=0; i<B.outerSize(); i++)
+	{
+		for(SparseMatrix<double>::InnerIterator it(B, i); it; ++it)
+		{
+			KKT_mat.insert(it.row()+A.rows(), it.col()) = it.value();
+		}
+	}
+
+	return KKT_mat;
+}
+
 SparseMatrix<double> create_SparseMatrix_ones(int rows, int cols)
 {
 	SparseMatrix<double> ones(rows, cols);
@@ -176,17 +201,88 @@ SparseMatrix<double> create_SparseMatrix_ones(int rows, int cols)
 	return ones;
 }
 
+VectorXd solve_Lx(MatrixXd &L, VectorXd X)
+{
+	for(int k=0; k<L.rows(); k++)
+	{
+		//cout << smatrix << endl;
+		for(int i=k+1; i<L.rows(); i++)
+		{
+			float first = L(i,k);
+			if(L(i,k) != 0)
+			{
+				L.row(i) = L.row(i)-(first/L(k,k))*L.row(k);
+			}
+
+			X(i,0) = X(i,0)-(first/L(k,k))*X(k,0);
+		}
+	}
+	return X;
+}
+
+VectorXd solve_Ux(MatrixXd &U, VectorXd X)
+{
+	for(int k=U.rows()-1; k>=0; k--)
+	{
+		//cout << smatrix << endl;
+		for(int i=k-1; i>=0; i--)
+		{
+			float first = U(i,k);
+			if(U(i,k) != 0)
+			{
+				U.row(i) = U.row(i)-(first/U(k,k))*U.row(k);
+			}
+
+			X(i,0) = X(i,0)-(first/U(k,k))*X(k,0);
+		}
+	}
+
+	for(int i=0; i< U.rows(); i++)
+	{
+		float div = U(i,i);
+		U(i,i) /= div;
+		X(i,0) /= div;
+	}
+	return X;
+}
+
+MatrixXd solve_Ax(SparseMatrix<double> sA, SparseMatrix<double> sb)
+{
+	MatrixXd A = sA;
+	MatrixXd b = sb;
+
+	//A.colPivHouseholderQr().solve(b);
+	cout << "A*A'" << endl;
+	auto t11 = std::chrono::high_resolution_clock::now();
+	MatrixXd A_t = A.transpose()*A;
+    auto t12 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
+    cout << "A_t: " << duration << endl;
+	VectorXd B_t = A.transpose()*b;
+
+	cout << "Solve LX" << endl;
+	solve_Lx(A_t, B_t);
+	cout << "End LX" << endl;
+	//(A.transpose() * A).ldlt().solve(A.transpose() * b);
+
+	print_dimensions("A: ", A);
+	print_dimensions("b: ", b);
+}
+
 void solveConstrainedLS(SparseMatrix<double> T,MatrixXd R, SparseMatrix<double> eq_lhs, MatrixXd eq_rhs)
 {
 	int n_vars = eq_lhs.cols();
 	int n_eq = eq_lhs.rows();
 	
 	SparseMatrix<double> sR = R.sparseView();
+	SparseMatrix<double> sEq_rhs = eq_rhs.sparseView();
 	/*SparseMatrix<double> sT = T;
 	SparseMatrix<double> sEq_lhs = eq_lhs;*/
 	SparseMatrix<double> sp(n_eq, n_eq);
 
-	join_matrices((T.transpose()*T), sR.transpose(), eq_lhs,sp);
+	solve_Ax(join_matrices((T.transpose()*T), sR.transpose(), eq_lhs,sp),
+		join_matrices_2x1(T.transpose()*sR, sEq_rhs));
+	//T.transpose()*sR;
 	//Solve Matrix
 }
 
