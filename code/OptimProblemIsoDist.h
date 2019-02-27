@@ -107,7 +107,7 @@ OptimProblemIsoDist::OptimProblemIsoDist(Param_State mesh, MatrixXd V0, int init
 }
 
 void OptimProblemIsoDist::initVertices(MatrixXd v0)
-{
+{ 
     //MatrixXd x0;
     if(!MatrixXd_isempty(v0))
     {
@@ -121,9 +121,19 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
         for(int arapIter = 0; arapIter<this->initArapIter; arapIter++)
         {
             this->Tx = this->T*this->x0;
-            this->R = this->Tx;
+            MatrixXd lR = this->T*this->x0;
+            //this->R = this->Tx;
             projBlockRotation2x2(this->R, this->dim);
             //this->x0 = solveConstrainedLS(this->T, this->R, this->eq_lhs, this->eq_rhs);
+
+            if(arapIter == 0)
+            {
+                print_dimensions("T: ", this->T);
+                print_dimensions("R: ", this->R);
+                print_dimensions("EQ_LHS: ", this->eq_lhs);
+                print_dimensions("EQ_RHS: ", this->eq_rhs);
+            }
+            solveConstrainedLS(this->T, lR, this->eq_lhs, this->eq_rhs);
         }
 
 
@@ -207,7 +217,7 @@ void OptimProblemIsoDist::evaluateFunctional(MatrixXd x, bool doVal, bool doGrad
     this->Tx_grad = this->Tx;
     if(doVal || doGrad)
     {
-        cout << "Inpute do Val" << endl;
+        //cout << "Inpute do Val" << endl;
         helperFunctionalIsoDist2x2(this->Tx_grad, this->areas, this->dim, this->f_val, this->flips);
 
         if(this->flips)

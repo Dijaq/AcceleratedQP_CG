@@ -334,7 +334,7 @@ void OptimSolverAcclQuadProx::computeLineSearchCond(double &linesearch_cond_lhs,
 
 //    matrix_reshape(tempP, tempP.rows()/this->optimProblem.dim, this->optimProblem.dim);
     //cout << "Evaluate Value" << endl;
-    cout << "->> evaluateValue" << endl;
+//    cout << "->> evaluateValue" << endl;
     this->optimProblem.evaluateValue(tempY, linesearch_cond_lhs);
     this->f_count++;
     linesearch_cond_rhs = this->y_f+this->ls_alpha*this->t*this->y_fgrad.transpose()*tempP;

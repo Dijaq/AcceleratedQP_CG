@@ -23,13 +23,6 @@ MatrixXd colStack(MatrixXd matrix)
 	return y;
 }
 
-void solveConstrainedLS(MatrixXd T,VectorXd R, MatrixXd eq_lhs, MatrixXd eq_rhs)
-{
-	int n_vars = eq_lhs.cols();
-	int n_eq = eq_lhs.rows();
-	//Solve Matrix
-}
-
 bool MatrixXd_isempty(MatrixXd matrix)
 {
 	int sum =0;
@@ -181,6 +174,20 @@ SparseMatrix<double> create_SparseMatrix_ones(int rows, int cols)
 	}
 
 	return ones;
+}
+
+void solveConstrainedLS(SparseMatrix<double> T,MatrixXd R, SparseMatrix<double> eq_lhs, MatrixXd eq_rhs)
+{
+	int n_vars = eq_lhs.cols();
+	int n_eq = eq_lhs.rows();
+	
+	SparseMatrix<double> sR = R.sparseView();
+	/*SparseMatrix<double> sT = T;
+	SparseMatrix<double> sEq_lhs = eq_lhs;*/
+	SparseMatrix<double> sp(n_eq, n_eq);
+
+	join_matrices((T.transpose()*T), sR.transpose(), eq_lhs,sp);
+	//Solve Matrix
 }
 
 #endif // MATHELPERS
