@@ -27,14 +27,14 @@ public:
     //Parameters
     MatrixXd x_prev;
     MatrixXd y;
-    int p;
+    VectorXd p;
     //SparseMatrix<double> KKT;
     DSparseLU KKT;
     MatrixXd KKT_rhs;
-    int p_lambda;
+    VectorXd p_lambda;
     double y_f;
     VectorXd y_fgrad;
-    int y_start;
+    float t_start;
     int t_init; //Store initialization time
     int f_count = 0; //Store function evaluation count
 
@@ -203,27 +203,66 @@ void OptimSolverAcclQuadProx::iterate()
         this->KKT_rhs(i,0) = -this->y_fgrad(i,0);
     }
 
-    print_dimensions("->", this->KKT_rhs);
+    /*Prueba matrix por descompistion LU and solve
+    MatrixXd smatrix(3,3);
+    smatrix(2,1) = -5;
+    smatrix(0,0) = 3;
+    smatrix(0,2) = 2;
+    smatrix(1,0) = 1;
+    smatrix(1,1) = -2;
+    cout << smatrix << endl;
+    DSparseLU sLU(smatrix);
+    cout << sLU.U << endl;
+    cout << sLU.L << endl;
+    cout << sLU.P.transpose()*sLU.L*sLU.U << endl;
+    VectorXd vec(3,1);
+    vec(0,0) = -2;
+    vec(1,0) = 3;
+    vec(2,0) = 6;
+    sLU.solve(vec);*/
+
+    /*print_dimensions("->", this->KKT_rhs);
     print_dimensions("->", this->KKT.L);
+    */
+
     print_dimensions("->", this->KKT.U);
+    auto t11 = std::chrono::high_resolution_clock::now();
+
+    this->p_lambda = this->KKT.solve(this->KKT_rhs);
+    auto t12 = std::chrono::high_resolution_clock::now();
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
+    cout << "Time: " << duration << endl;
+    this->p = VectorXd(this->optimProblem.n_vars,1);
+
+    for(int i=0; i<this->optimProblem.n_vars; i++)
+    {
+        this->p(i,0) = this->p_lambda(i,0);
+    }    
 
     //Initialize step size
     if(this->useLineSearchStepSizeMemory)
     {
-        cout << "useLineSearchStepSizeMemory" << endl;
+        //cout << "useLineSearchStepSizeMemory" << endl;
+        this->t_start = min(this->t*this->lineSearchStepSizeMemoryFactor,1);
     }
     else
     {
-
+        this->t_start = 1;
     }
 
     if(this->useLineSearchStepSizeLimit)
     {
-        cout << "useLineSearchStepLimit" << endl;
+        MatrixXd tempY = this->y;
+        MatrixXd tempP = this->p;
+        matrix_reshape(tempY, tempY.rows()/this->optimProblem.dim, this->optimProblem.dim);
+        matrix_reshape(tempP,tempP.rows()/this->optimProblem.dim, this->optimProblem.dim);
+        //cout << "useLineSearchStepLimit" << endl;
+        this->t = min(this->t_start, this->lineSearchStepSizeLimitFactor*this->optimProblem.getMaxStep(tempY, tempP));
     }
     else
     {
-
+        this->t = this->t_start;
     }
 
     //Line search
@@ -242,6 +281,11 @@ double OptimSolverAcclQuadProx::min(double value1, double value2)
         return value1;
     else
         return value2;
+}
+
+void OptimSolverAcclQuadProx::computeLineSearchCond()
+{
+
 }
 
 #endif
