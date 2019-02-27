@@ -51,10 +51,10 @@ int main()
 
     int n_solvers = listOptimSolverAccQuadProx.size();
 
-    for(int i=0; i<n_solvers; i++)
+    /*for(int i=0; i<n_solvers; i++)
     {
         listOptimSolverAccQuadProx[i].solveTol(TolX, TolFun, num_iter);
-    }
+    }*/
 
     cout << "Finish Program" << endl;
 

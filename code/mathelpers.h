@@ -23,6 +23,13 @@ MatrixXd colStack(MatrixXd matrix)
 	return y;
 }
 
+void solveConstrainedLS(MatrixXd T,VectorXd R, MatrixXd eq_lhs, MatrixXd eq_rhs)
+{
+	int n_vars = eq_lhs.cols();
+	int n_eq = eq_lhs.rows();
+	//Solve Matrix
+}
+
 bool MatrixXd_isempty(MatrixXd matrix)
 {
 	int sum =0;

@@ -16,6 +16,7 @@
 #include "../mex/computeMeshTranformationCoeffsMex.h"
 #include "../mex/computeFunctionalIsoDistMex.h"
 #include "../mex/computeInjectiveStepSizeMex.h"
+#include "../mex/projectRotationMexFast.h"
 
 using namespace std;
 using namespace cv;
@@ -35,7 +36,7 @@ public:
 
     //Internal Variables
     VectorXd  Tx;
-    int R;
+    VectorXd R;
     double f_val;
     VectorXd Tx_grad;
     bool flips;
@@ -110,7 +111,6 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
     //MatrixXd x0;
     if(!MatrixXd_isempty(v0))
     {
-        cout << "No necesary code" << endl;
         this->x0 = v0;
     }
     else
@@ -118,6 +118,14 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
         //Here in our example
         this->x0 = colStack(this->V);
         /*Falta implementar revisar el codigo fuente*/
+        for(int arapIter = 0; arapIter<this->initArapIter; arapIter++)
+        {
+            this->Tx = this->T*this->x0;
+            this->R = this->Tx;
+            projBlockRotation2x2(this->R, this->dim);
+            //this->x0 = solveConstrainedLS(this->T, this->R, this->eq_lhs, this->eq_rhs);
+        }
+
 
         matrix_reshape(this->x0, this->n_vert, this->dim);
         //cout << "size: "<<this->x0.rows() << "-"<<this->x0.cols() << endl;

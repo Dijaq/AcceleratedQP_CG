@@ -153,7 +153,8 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
         //t_iter_start = tic
 
         iterate();
-        //Stop criteria
+        //Falta Stop criteria
+
     }
 }
 
@@ -272,6 +273,12 @@ void OptimSolverAcclQuadProx::iterate()
         cout << "useLineSearch" << endl;
         double linesearch_cond_lhs, linesearch_cond_rhs;
         computeLineSearchCond(linesearch_cond_lhs, linesearch_cond_rhs);
+
+        while(linesearch_cond_lhs > linesearch_cond_rhs)
+        {
+            this->t = this->ls_beta*this->t;
+            computeLineSearchCond(linesearch_cond_lhs, linesearch_cond_rhs);
+        }
     }
 
     this->x_prev = this->x;
