@@ -59,6 +59,7 @@ public:
     void initVertices(MatrixXd V0);
     void setQuadraticProxy();
     double getMaxStep(MatrixXd x, MatrixXd p);
+    void evaluateValue(MatrixXd x, double &f);
     void evaluateGrad(MatrixXd x, double &f, VectorXd &f_grad);
     void evaluateValueGrad(MatrixXd x, double &f, VectorXd &f_grad);
     void evaluateFunctional(MatrixXd x, bool doVal, bool doGrad, bool doHess, double &f, VectorXd &f_grad);
@@ -173,6 +174,12 @@ double OptimProblemIsoDist::getMaxStep(MatrixXd x, MatrixXd p)
     return t_max;
 }
 
+void OptimProblemIsoDist::evaluateValue(MatrixXd x, double &f)
+{
+    VectorXd f_grad;
+    evaluateFunctional(x, true, false, false, f, f_grad);
+}
+
 void OptimProblemIsoDist::evaluateGrad(MatrixXd x, double &f, VectorXd &f_grad)
 {
     evaluateFunctional(x, false, true, false, f, f_grad);
@@ -185,6 +192,10 @@ void OptimProblemIsoDist::evaluateValueGrad(MatrixXd x, double &f, VectorXd &f_g
 
 void OptimProblemIsoDist::evaluateFunctional(MatrixXd x, bool doVal, bool doGrad, bool doHess, double &f, VectorXd &f_grad)
 {
+    print_dimensions("T: ", this->T);
+    print_dimensions("x: ", x);
+    
+
     this->Tx = this->T*x;
     this->Tx_grad = this->Tx;
     if(doVal || doGrad)

@@ -65,6 +65,7 @@ public:
     void solveTol(float TolX, float TolFun, int max_iter);
     void iterate();
     double min(double value1, double value2);
+    void computeLineSearchCond(double &linesearch_cond_lhs, double &linesearch_cond_rhs);
 };
 
 OptimSolverAcclQuadProx::OptimSolverAcclQuadProx()
@@ -238,7 +239,7 @@ void OptimSolverAcclQuadProx::iterate()
     for(int i=0; i<this->optimProblem.n_vars; i++)
     {
         this->p(i,0) = this->p_lambda(i,0);
-    }    
+    }
 
     //Initialize step size
     if(this->useLineSearchStepSizeMemory)
@@ -269,7 +270,12 @@ void OptimSolverAcclQuadProx::iterate()
     if(this->useLineSearch)
     {
         cout << "useLineSearch" << endl;
+        double linesearch_cond_lhs, linesearch_cond_rhs;
+        computeLineSearchCond(linesearch_cond_lhs, linesearch_cond_rhs);
     }
+
+    this->x_prev = this->x;
+    this->x = this->y+this->t*this->p;
 
     //Update values
 
@@ -283,9 +289,32 @@ double OptimSolverAcclQuadProx::min(double value1, double value2)
         return value2;
 }
 
-void OptimSolverAcclQuadProx::computeLineSearchCond()
+void OptimSolverAcclQuadProx::computeLineSearchCond(double &linesearch_cond_lhs, double &linesearch_cond_rhs)
 {
+    MatrixXd tempY = this->y;
+    VectorXd tempP = this->p;
+    for(int i=0; i<tempP.rows(); i++)
+    {
+        for(int j=0; j<tempP.cols(); j++)
+        {
+            tempP(i,j) = tempP(i,j)*this->t;
+        }
+    }
 
+//Add elemento from TempY and TempP
+    for(int i=0; i<tempY.rows(); i++)
+    {
+        for(int j=0; j<tempY.cols(); j++)
+        {
+            tempY(i,j) = tempY(i,j)+tempP(i,j);
+        }
+    }
+
+//    matrix_reshape(tempP, tempP.rows()/this->optimProblem.dim, this->optimProblem.dim);
+    cout << "Evaluate Value" << endl;
+    this->optimProblem.evaluateValue(tempY, linesearch_cond_lhs);
+    //this->f_count++;
+    //linesearch_cond_rhs = this->y_f+this->ls_alpha*this->t*this->y_fgrad.transpose()*tempP;
 }
 
 #endif

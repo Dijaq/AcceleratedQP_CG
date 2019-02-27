@@ -3,6 +3,7 @@
 
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Sparse>
+#include <chrono>
 
 class DSparseLU{
 public:
@@ -26,7 +27,13 @@ DSparseLU::DSparseLU(){}
 DSparseLU::DSparseLU(MatrixXd smatrix)
 {
 	this->U = smatrix;
+	
+	auto t11 = std::chrono::high_resolution_clock::now();
 	MatrixXd ones = matriz_diagonal_ones(smatrix.rows(), smatrix.cols());
+    auto t12 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
+
+    cout << "Create Identity: " << duration << endl;
 	this->L = ones;
 	this->P = ones;
 	this->Q = ones;
