@@ -12,8 +12,10 @@ public:
 	Eigen::MatrixXd U;
 	Eigen::MatrixXd P;//This is a sparse matrix
 	Eigen::MatrixXd Q;
+	FullPivLU<MatrixXd> lu;
 
 	DSparseLU();
+	DSparseLU(MatrixXd smatrix, bool s);
 	DSparseLU(MatrixXd smatrix);
 	DSparseLU(SparseMatrix<double> smatrix);
 	MatrixXd matriz_diagonal_ones(int rows, int cols);
@@ -23,6 +25,32 @@ public:
 };
 
 DSparseLU::DSparseLU(){}
+
+
+/*LU implementation of Eigen*/
+//Toma 8 veces mas tiempo que la implementacion propia
+DSparseLU::DSparseLU(MatrixXd smatrix, bool s)
+{
+	lu = FullPivLU<MatrixXd>(smatrix);
+	/*cout << "Original Matrix" << endl;
+    cout << practice << endl;
+
+    FullPivLU<MatrixXd> lu(practice);
+    cout << lu.matrixLU() << endl;
+    cout << "print matrix L " << endl;
+    MatrixXd l = MatrixXd::Identity(3,3);
+    l.block<3,3>(0,0).triangularView<StrictlyLower>() = lu.matrixLU();
+    cout << l << endl;
+
+    cout << "print matrix U " << endl;
+    MatrixXd u = lu.matrixLU().triangularView<Upper>();
+    cout << u << endl;
+    //cout << lu.permutationQ() << endl;
+    cout << "Original Matrix: " << endl;
+    cout << lu.permutationP().inverse()*l*u*lu.permutationQ().inverse() << endl;
+
+    cout << lu.permutationP().inverse() << endl;*/
+}
 
 DSparseLU::DSparseLU(MatrixXd smatrix)
 {
@@ -37,6 +65,8 @@ DSparseLU::DSparseLU(MatrixXd smatrix)
 	this->L = ones;
 	this->P = ones;
 	this->Q = ones;
+
+	auto duration = 0;
 
 
 	for(int k=0; k<this->U.rows(); k++)
@@ -54,15 +84,26 @@ DSparseLU::DSparseLU(MatrixXd smatrix)
 		}
 
 		//Change in U and L
+
+		auto t11 = std::chrono::high_resolution_clock::now();
+		MatrixXd tempU = this->U.row(k);
+		this->U.row(k) = this->U.row(fila);
+		this->U.row(fila) = tempU;
+
+		MatrixXd tempP = this->P.row(k);
+		this->P.row(k) = this->P.row(fila);
+		this->P.row(fila) = tempP;
+
+
 		for(int j=0; j<this->U.cols(); j++)
 		{
-			double tempU = this->U(k,j);
+			/*double tempU = this->U(k,j);
 			this->U(k,j) = this->U(fila, j);
 			this->U(fila, j) = tempU;
 
 			double tempP = this->P(k,j);
 			this->P(k,j) = this->P(fila, j);
-			this->P(fila, j) = tempP;
+			this->P(fila, j) = tempP;*/
 
 			if(k > j)
 			{
@@ -71,21 +112,28 @@ DSparseLU::DSparseLU(MatrixXd smatrix)
 				this->L(fila, j) = tempL;
 			}
 		}
+    	auto t12 = std::chrono::high_resolution_clock::now();
+    	duration += std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
 
 		//cout << smatrix << endl;
 		for(int i=k+1; i<this->U.rows(); i++)
 		{
 			float first = this->U(i,k);
 			if(this->U(i,k) != 0)
-				for(int j=0; j<this->U.cols(); j++)
+			{
+				this->U.row(i) = this->U.row(i)-(first/this->U(k,k))*this->U.row(k);
+				/*for(int j=0; j<this->U.cols(); j++)
 				{
-					//cout << "i: " << i << " j: " << j << " values: " << smatrix(i,k) <<" - " <<smatrix(k,k) << " - " <<smatrix(k,j) << endl;
 					this->U(i,j) = this->U(i,j)-(first/this->U(k,k))*this->U(k,j);
 					
-				}
+				}*/
+			}
 			this->L(i,k) = (first/this->U(k,k));
 		}
 	}
+
+	
+    //cout << "Time Permutations: " << duration << endl;
 
 }
 
@@ -115,11 +163,12 @@ VectorXd DSparseLU::solve_Lx(MatrixXd L, VectorXd X)
 			float first = L(i,k);
 			if(L(i,k) != 0)
 			{
-				for(int j=0; j<i; j++)
+				L.row(i) = L.row(i)-(first/L(k,k))*L.row(k);
+				/*for(int j=0; j<i; j++)
 				{
 					//cout << "i: " << i << " j: " << j << " values: " << smatrix(i,k) <<" - " <<smatrix(k,k) << " - " <<smatrix(k,j) << endl;
 					L(i,j) = L(i,j)-(first/L(k,k))*L(k,j);
-				}
+				}*/
 			}
 
 			//cout << "Num/Den: " << first << "/" << L(k,k) << " val: " << X(i,0) << endl;
@@ -140,11 +189,15 @@ VectorXd DSparseLU::solve_Ux(MatrixXd U, VectorXd X)
 		{
 			float first = U(i,k);
 			if(U(i,k) != 0)
+			{
+				U.row(i) = U.row(i)-(first/U(k,k))*U.row(k);
+				/*
 				for(int j=U.cols()-1; j>i; j--)
 				{
 					//cout << "i: " << i << " j: " << j << " values: " << smatrix(i,k) <<" - " <<smatrix(k,k) << " - " <<smatrix(k,j) << endl;
 					U(i,j) = U(i,j)-(first/U(k,k))*U(k,j);
-				}
+				}*/
+			}
 
 			//cout << "Num/Den: " << first << "/" << L(k,k) << " val: " << X(i,0) << endl;
 			X(i,0) = X(i,0)-(first/U(k,k))*X(k,0);

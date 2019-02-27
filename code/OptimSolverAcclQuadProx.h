@@ -91,7 +91,7 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
         KKT_mat = join_matrices(optimProblem.H, optimProblem.eq_lhs.transpose(), optimProblem.eq_lhs, spar);
         //auto t12 = std::chrono::high_resolution_clock::now();
         //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
-        //cout << "Time: " << duration << endl;
+        //cout << "Time Sparse: " << duration << endl;
         /*cout << optimProblem.H.rows() << " - " << optimProblem.H.cols()<<endl;
         cout << optimProblem.eq_lhs.rows() << " - " << optimProblem.eq_lhs.cols() <<endl;
         cout << optimProblem.n_eq << endl;*/
@@ -102,6 +102,8 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
         SparseMatrix<double> ones = create_SparseMatrix_ones(optimProblem.H.rows(), optimProblem.H.cols());
         KKT_mat = join_matrices(ones, optimProblem.eq_lhs.transpose(), optimProblem.eq_lhs, spar);
     }
+
+    
 
     /*SparseMatrix<double> smatrix(3,3);
     smatrix.insert(2,1) = -5;
@@ -119,7 +121,19 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     cout << sLU.Q << endl;*/    
 
     MatrixXd matrix = KKT_mat;
+    /*auto t31 = std::chrono::high_resolution_clock::now();
+    DSparseLU ssparseLU(matrix, true);
+    auto t32 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t32 - t31).count();
+    cout << "Time AQP1: " << duration << endl;*/
+
+    auto t11 = std::chrono::high_resolution_clock::now();
     DSparseLU sparseLU(matrix);
+    auto t12 = std::chrono::high_resolution_clock::now();
+    auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
+    cout << "Time AQP2: " << duration1 << endl;
+
+
     this->KKT = sparseLU;
     //this->KKT = SparseLU(matrix);
 
@@ -234,7 +248,7 @@ void OptimSolverAcclQuadProx::iterate()
     auto t12 = std::chrono::high_resolution_clock::now();
 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
-    cout << "Time: " << duration << endl;
+    cout << "Time solve LU: " << duration << endl;
     this->p = VectorXd(this->optimProblem.n_vars,1);
 
     for(int i=0; i<this->optimProblem.n_vars; i++)
@@ -270,12 +284,13 @@ void OptimSolverAcclQuadProx::iterate()
     //Line search
     if(this->useLineSearch)
     {
-        cout << "useLineSearch" << endl;
+        //cout << "useLineSearch" << endl;
         double linesearch_cond_lhs, linesearch_cond_rhs;
         computeLineSearchCond(linesearch_cond_lhs, linesearch_cond_rhs);
 
         while(linesearch_cond_lhs > linesearch_cond_rhs)
         {
+          //  cout << linesearch_cond_lhs << " > " << linesearch_cond_rhs << endl;
             this->t = this->ls_beta*this->t;
             computeLineSearchCond(linesearch_cond_lhs, linesearch_cond_rhs);
         }
@@ -318,10 +333,11 @@ void OptimSolverAcclQuadProx::computeLineSearchCond(double &linesearch_cond_lhs,
     }
 
 //    matrix_reshape(tempP, tempP.rows()/this->optimProblem.dim, this->optimProblem.dim);
-    cout << "Evaluate Value" << endl;
+    //cout << "Evaluate Value" << endl;
+    cout << "->> evaluateValue" << endl;
     this->optimProblem.evaluateValue(tempY, linesearch_cond_lhs);
-    //this->f_count++;
-    //linesearch_cond_rhs = this->y_f+this->ls_alpha*this->t*this->y_fgrad.transpose()*tempP;
+    this->f_count++;
+    linesearch_cond_rhs = this->y_f+this->ls_alpha*this->t*this->y_fgrad.transpose()*tempP;
 }
 
 #endif

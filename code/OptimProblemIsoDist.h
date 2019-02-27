@@ -200,18 +200,20 @@ void OptimProblemIsoDist::evaluateValueGrad(MatrixXd x, double &f, VectorXd &f_g
 
 void OptimProblemIsoDist::evaluateFunctional(MatrixXd x, bool doVal, bool doGrad, bool doHess, double &f, VectorXd &f_grad)
 {
-    print_dimensions("T: ", this->T);
-    print_dimensions("x: ", x);
+    //print_dimensions("T: ", this->T);
+    //print_dimensions("x: ", x);
     
-
     this->Tx = this->T*x;
     this->Tx_grad = this->Tx;
     if(doVal || doGrad)
     {
+        cout << "Inpute do Val" << endl;
         helperFunctionalIsoDist2x2(this->Tx_grad, this->areas, this->dim, this->f_val, this->flips);
 
         if(this->flips)
+        {
             this->f_val = numeric_limits<int>::max();
+        }
     }
 
     if(doVal)
