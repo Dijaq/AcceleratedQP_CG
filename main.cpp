@@ -67,6 +67,7 @@ int main()
 
     for(int i=0; i<n_solvers; i++)
     {
+        cout << "Start Iterations: " << endl;
         auto t21 = std::chrono::high_resolution_clock::now();
         listOptimSolverAccQuadProx[i].solveTol(TolX, TolFun, num_iter);
         auto t22 = std::chrono::high_resolution_clock::now();

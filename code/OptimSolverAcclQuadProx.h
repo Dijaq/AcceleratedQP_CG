@@ -12,7 +12,7 @@
 #include "math.h"
 #include <chrono>
 #include "../class/DSparseLU.h"
-#include "../class/Splu.h"
+//#include "../class/Splu.h"
 #include "../class/Param_State.h"
 #include "../mex/computeMeshTranformationCoeffsMex.h"
 #include "OptimSolverIterative.h"
@@ -25,13 +25,15 @@ class OptimSolverAcclQuadProx : public OptimSolverIterative
 {
 public:
 
+    //SparseLU<SparseMatrix<double>> AQPLU;
     //Parameters
     MatrixXd x_prev;
     MatrixXd y;
     VectorXd p;
     //SparseMatrix<double> KKT;
     //DSparseLU KKT;
-    Splu KKT;
+    //Splu KKT;
+    SparseMatrix<double> KKT_mat;
     MatrixXd KKT_rhs;
     VectorXd p_lambda;
     double y_f;
@@ -84,13 +86,13 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     //Init Solver
     initSolver(tag, optimProblem);
 
-    SparseMatrix<double> KKT_mat;
+    //SparseMatrix<double> KKT_mat;
 
     if(this->useQuadProxy)
     {
         SparseMatrix<double> spar(optimProblem.n_eq, optimProblem.n_eq);
         //auto t11 = std::chrono::high_resolution_clock::now();
-        KKT_mat = join_matrices(optimProblem.H, optimProblem.eq_lhs.transpose(), optimProblem.eq_lhs, spar);
+        this->KKT_mat = join_matrices(optimProblem.H, optimProblem.eq_lhs.transpose(), optimProblem.eq_lhs, spar);
         //auto t12 = std::chrono::high_resolution_clock::now();
         //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
         //cout << "Time Sparse: " << duration << endl;
@@ -102,7 +104,7 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     {
         SparseMatrix<double> spar(optimProblem.n_eq, optimProblem.n_eq);
         SparseMatrix<double> ones = create_SparseMatrix_ones(optimProblem.H.rows(), optimProblem.H.cols());
-        KKT_mat = join_matrices(ones, optimProblem.eq_lhs.transpose(), optimProblem.eq_lhs, spar);
+        this->KKT_mat = join_matrices(ones, optimProblem.eq_lhs.transpose(), optimProblem.eq_lhs, spar);
     }
 
     
@@ -128,26 +130,32 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t32 - t31).count();
     cout << "Time AQP1: " << duration << endl;*/
 
-    MatrixXd matrix = KKT_mat;
+    //MatrixXd matrix = KKT_mat;
     auto t11 = std::chrono::high_resolution_clock::now();
     //SparseLUPQ sparseLUPQ(KKT_mat);
     //this->KKT = SparseLUPQ(KKT_mat);
     //this->KKT = DSparseLU(matrix);
-    this->KKT = Splu(KKT_mat);
+    //this->KKT = Splu(KKT_mat);
+    //cout << "***" << this->KKT.LU.matrixL().rows() << endl;
 
     auto t12 = std::chrono::high_resolution_clock::now();
     auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
     cout << "Time AQP2: " << duration1 << endl;
-
-
+    
+    //cout << "1****" << (*this->KKT.LU).matrixL().rows() << endl;
 
     //init internal variables
-    MatrixXd initZeros(this->optimProblem.n_vars+this->optimProblem.n_eq,1);
-    this->KKT_rhs = initZeros;
+    //MatrixXd initZeros(this->optimProblem.n_vars+this->optimProblem.n_eq,1);
+    //this->KKT_rhs = initZeros;
+    this->KKT_rhs = MatrixXd(this->optimProblem.n_vars+this->optimProblem.n_eq,1);
+    //cout << "2*****" << (*this->KKT.LU).matrixL().rows() << endl;
+
     this->x_prev = this->x;
+    //cout << "******" << (*this->KKT.LU).matrixL().rows() << endl;
     this->t = 1/this->lineSearchStepSizeMemoryFactor;
     //Store init time
     //t_init = toc(t_init_start)
+    //cout << "*******" << (*this->KKT.LU).matrixL().rows() << endl;
 }
 
 OptimSolverAcclQuadProx::~OptimSolverAcclQuadProx(){}
@@ -159,19 +167,162 @@ void OptimSolverAcclQuadProx::setKappa(float kappa)
 
 void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 {
+    /*Secion of create the matriz L and U
+    */
+    SparseLU<SparseMatrix<double>> LU;
+    LU.analyzePattern(this->KKT_mat);
+    LU.factorize(this->KKT_mat);
+
+    cout << "-->"<<LU.matrixL().cols() << endl;
+    cout << "-->"<<LU.matrixU().cols() << endl;
+    cout << "-->"<<LU.rowsPermutation().rows() << endl;
+    cout << "-->"<<LU.colsPermutation().rows() << endl;
+
+
     //This is only logs is not necesarialy for the implementation
     //logInit();
     //logState();
 
     //run num_iter iteration
-    //for(int i=0; i<max_iter; i++)
-    for(int i=0; i<100; i++)
+    //for(int i=0; i<100; i++)
+    for(int i=0; i<max_iter; i++)
     {
         //this is the time to start no necesarialy
         //t_iter_start = tic
 
-        iterate();
+        //iterate(LU);
         //Falta Stop criteria
+         if(this->useAcceleration)
+        {
+            //cout << "useAcceleration" << endl;
+            if(this->useAccelerationStepSizeLimit)
+            {
+                MatrixXd tempX = this->x;
+                MatrixXd tempX_prev = this->x_prev;
+                matrix_reshape(tempX, tempX.rows()/this->optimProblem.dim, this->optimProblem.dim);
+                matrix_reshape(tempX_prev,tempX_prev.rows()/this->optimProblem.dim, this->optimProblem.dim);
+                
+                this->accelerationStepSize = min(this->theta, this->accelarationStepSizeLimitFactor*this->optimProblem.getMaxStep(tempX, (tempX-tempX_prev)));
+            }
+            else
+            {
+                this->accelerationStepSize = this->theta;
+            }
+            this->y = this->x+this->accelerationStepSize*(this->x-this->x_prev);
+        }
+        else
+        {
+            this->y = this->x;
+        }
+
+        //Quadratic proxy minimization
+        if(this->useLineSearch)
+        {
+            //cout << "useLineSearch" << endl;
+            this->optimProblem.evaluateValueGrad(this->y, this->y_f, this->y_fgrad);
+            this->f_count++;
+        }
+        else
+        {
+            this->optimProblem.evaluateGrad(this->y, this->y_f, this->y_fgrad);
+            this->f_count++;
+        }
+
+        //print_dimensions("->", this->KKT_rhs);//Dimension of 1728
+        //print_dimensions("->", this->y_fgrad);
+        //cout << this->optimProblem.n_vars << endl;
+        for(int i=0; i<this->optimProblem.n_vars; i++)
+        {
+            this->KKT_rhs(i,0) = -this->y_fgrad(i,0);
+        }
+
+        /*Prueba matrix por descompistion LU and solve
+        MatrixXd smatrix(3,3);
+        smatrix(2,1) = -5;
+        smatrix(0,0) = 3;
+        smatrix(0,2) = 2;
+        smatrix(1,0) = 1;
+        smatrix(1,1) = -2;
+        cout << smatrix << endl;
+        DSparseLU sLU(smatrix);
+        cout << sLU.U << endl;
+        cout << sLU.L << endl;
+        cout << sLU.P.transpose()*sLU.L*sLU.U << endl;
+        VectorXd vec(3,1);
+        vec(0,0) = -2;
+        vec(1,0) = 3;
+        vec(2,0) = 6;
+        sLU.solve(vec);*/
+
+        /*print_dimensions("->", this->KKT_rhs);
+        print_dimensions("->", this->KKT.L);
+        */
+
+    //    print_dimensions("->", this->KKT.U);
+        auto t11 = std::chrono::high_resolution_clock::now();
+        //print_dimensions("KKT_rhs", this->KKT_rhs);
+
+        VectorXd b = (LU.rowsPermutation().transpose())*this->KKT_rhs;
+        LU.matrixL().solveInPlace(b);
+        LU.matrixU().solveInPlace(b);
+
+        this->p_lambda = b;
+
+        //this->p_lambda = this->KKT.solve(this->KKT_rhs);
+        
+        auto t12 = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
+        cout << "Iteration: " << i << " time: " <<duration << endl;
+        this->p = VectorXd(this->optimProblem.n_vars,1);
+
+        for(int i=0; i<this->optimProblem.n_vars; i++)
+        {
+            this->p(i,0) = this->p_lambda(i,0);
+        }
+
+        //Initialize step size
+        if(this->useLineSearchStepSizeMemory)
+        {
+            //cout << "useLineSearchStepSizeMemory" << endl;
+            this->t_start = min(this->t*this->lineSearchStepSizeMemoryFactor,1);
+        }
+        else
+        {
+            this->t_start = 1;
+        }
+
+        if(this->useLineSearchStepSizeLimit)
+        {
+            MatrixXd tempY = this->y;
+            MatrixXd tempP = this->p;
+            matrix_reshape(tempY, tempY.rows()/this->optimProblem.dim, this->optimProblem.dim);
+            matrix_reshape(tempP,tempP.rows()/this->optimProblem.dim, this->optimProblem.dim);
+            //cout << "useLineSearchStepLimit" << endl;
+            this->t = min(this->t_start, this->lineSearchStepSizeLimitFactor*this->optimProblem.getMaxStep(tempY, tempP));
+        }
+        else
+        {
+            this->t = this->t_start;
+        }
+
+        //Line search
+        if(this->useLineSearch)
+        {
+            //cout << "useLineSearch" << endl;
+            double linesearch_cond_lhs, linesearch_cond_rhs;
+            computeLineSearchCond(linesearch_cond_lhs, linesearch_cond_rhs);
+
+            while(linesearch_cond_lhs > linesearch_cond_rhs)
+            {
+              //  cout << linesearch_cond_lhs << " > " << linesearch_cond_rhs << endl;
+                this->t = this->ls_beta*this->t;
+                computeLineSearchCond(linesearch_cond_lhs, linesearch_cond_rhs);
+            }
+        }
+
+        this->x_prev = this->x;
+        this->x = this->y+this->t*this->p;
+
 
     }
 }
@@ -247,10 +398,11 @@ void OptimSolverAcclQuadProx::iterate()
 
 //    print_dimensions("->", this->KKT.U);
     auto t11 = std::chrono::high_resolution_clock::now();
+    print_dimensions("KKT_rhs", this->KKT_rhs);
 
-    this->p_lambda = this->KKT.solve(this->KKT_rhs);
+    //this->p_lambda = this->KKT.solve(this->KKT_rhs);
+    
     auto t12 = std::chrono::high_resolution_clock::now();
-
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
     cout << "Time solve LU: " << duration << endl;
     this->p = VectorXd(this->optimProblem.n_vars,1);
