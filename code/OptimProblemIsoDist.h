@@ -121,20 +121,19 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
         for(int arapIter = 0; arapIter<this->initArapIter; arapIter++)
         {
             this->Tx = this->T*this->x0;
-            MatrixXd lR = this->T*this->x0;
             this->R = this->Tx;
             projBlockRotation2x2(this->R, this->dim);
             //this->x0 = solveConstrainedLS(this->T, this->R, this->eq_lhs, this->eq_rhs);
 
-            /*if(arapIter == 0)
+            if(arapIter == 0)
             {
                 print_dimensions("T: ", this->T);
-                print_dimensions("R: ", lR);
+                print_dimensions("R: ", this->R);
                 print_dimensions("EQ_LHS: ", this->eq_lhs);
                 print_dimensions("EQ_RHS: ", this->eq_rhs);
-            }*/
+            }
             //This is too low, falta mejorar
-            //solveConstrainedLS(this->T, lR, this->eq_lhs, this->eq_rhs);
+            this->x0 = solveConstrainedLS(this->T, this->R, this->eq_lhs, this->eq_rhs);
         }
 
 

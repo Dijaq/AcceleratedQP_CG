@@ -68,6 +68,22 @@ void load_SparseMatrix(std::istream& inStream, SparseMatrix<double> &matrix)
     }
 }
 
+void export_mat_to_excel(MatrixXd matrix, string name)
+{
+    ofstream myfile;
+    myfile.open(name+".csv");
+    for(int i=0; i<matrix.rows(); i++)
+    {
+        for(int j=0; j<matrix.cols(); j++)
+        {
+            myfile << matrix(i,j);
+            myfile << ",";
+        }
+        myfile << "\n";
+    }
+    myfile.close();
+}
+
 void countRowsColsCsv(istream& inStream, int &rows, int &cols)
 {
     string         line;

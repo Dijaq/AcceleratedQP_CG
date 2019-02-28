@@ -269,18 +269,26 @@ MatrixXd solve_Ax(SparseMatrix<double> sA, SparseMatrix<double> sb)
 	print_dimensions("b: ", b);
 }
 
-MatrixXd solve_with_QR_Ax(SparseMatrix<double> sA, SparseMatrix<double> sb)
+VectorXd solve_with_QR_Ax(SparseMatrix<double> sA, SparseMatrix<double> sb)
 {
 	MatrixXd A = sA;
 	MatrixXd b = sb;
+
+	print_dimensions("AA: ", A);
+	print_dimensions("bb: ", b);
+
+	//export_mat_to_excel(A, "A");
 	cout << "Starting solve" << endl;
-	A.colPivHouseholderQr().solve(b);
+	VectorXd x = A.colPivHouseholderQr().solve(b);
 	cout << "Finish solve" << endl;
+
+	return x;
 }
 
-void solveConstrainedLS(SparseMatrix<double> T,MatrixXd R, SparseMatrix<double> eq_lhs, MatrixXd eq_rhs)
+VectorXd solveConstrainedLS(SparseMatrix<double> T,MatrixXd R, SparseMatrix<double> eq_lhs, MatrixXd eq_rhs)
 {
 	int n_vars = eq_lhs.cols();
+	cout << "n_vars: " << n_vars << endl;
 	int n_eq = eq_lhs.rows();
 	
 	SparseMatrix<double> sR = R.sparseView();
@@ -289,8 +297,18 @@ void solveConstrainedLS(SparseMatrix<double> T,MatrixXd R, SparseMatrix<double> 
 	SparseMatrix<double> sEq_lhs = eq_lhs;*/
 	SparseMatrix<double> sp(n_eq, n_eq);
 
-	solve_with_QR_Ax(join_matrices((T.transpose()*T), sR.transpose(), eq_lhs,sp),
+	VectorXd x = solve_with_QR_Ax(join_matrices((T.transpose()*T), eq_lhs.transpose(), eq_lhs,sp),
 		join_matrices_2x1(T.transpose()*sR, sEq_rhs));
+
+	VectorXd x_r(n_vars);
+	for(int i=0; i<n_vars; i++)
+	{
+		x_r(i,0) = x(i,0); 
+	}
+
+	cout << "Dimensiones: " << x.rows() << " - " << x.cols() << endl;
+
+	return x_r;
 	//T.transpose()*sR;
 	//Solve Matrix
 }
