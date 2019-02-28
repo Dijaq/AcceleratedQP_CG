@@ -142,12 +142,14 @@ int main()
     cout << "Time: " << duration << endl;
     */
 
+    print_dimensions("Fx0: ", optimProblem.x0);
+
     MatrixXd exportV = optimProblem.x0;
-    matrix_reshape(exportV, exportV.rows()/2, 2);
+    //matrix_reshape(exportV, exportV.rows()/2, 2);
 
     MatrixXd nV(exportV.rows(), exportV.cols()+1);
     create_column_zeros(exportV, nV);
-    igl::writeOBJ("prueba_it3.obj", nV, mesh.F);
+    igl::writeOBJ("IsoDist_cpp.obj", nV, mesh.F);
   
 	return 0;
 }

@@ -246,27 +246,30 @@ VectorXd solve_Ux(MatrixXd &U, VectorXd X)
 	return X;
 }
 
-MatrixXd solve_Ax(SparseMatrix<double> sA, SparseMatrix<double> sb)
+/*VectorXd solve_Ax(SparseMatrix<double> sA, SparseMatrix<double> sb)
 {
 	MatrixXd A = sA;
 	MatrixXd b = sb;
 
 	//A.colPivHouseholderQr().solve(b);
-	cout << "A*A'" << endl;
-	auto t11 = std::chrono::high_resolution_clock::now();
-	MatrixXd A_t = A.transpose()*A;
-    auto t12 = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
-    cout << "A_t: " << duration << endl;
-	VectorXd B_t = A.transpose()*b;
+	VectorXd Lb = solve_Lx(A, b);
 
-	cout << "Solve LX" << endl;
-	solve_Lx(A_t, B_t);
-	cout << "End LX" << endl;
+	return solve_Ux(A, Lb);
+
 	//(A.transpose() * A).ldlt().solve(A.transpose() * b);
 
-	print_dimensions("A: ", A);
-	print_dimensions("b: ", b);
+}*/
+
+VectorXd solve_Ax(SparseMatrix<double> sA, SparseMatrix<double> sb)
+{
+	SparseLU<SparseMatrix<double>> solver;
+	solver.analyzePattern(sA);
+	solver.factorize(sA);
+
+	VectorXd x = solver.solve(sb);
+
+	return x;
+
 }
 
 VectorXd solve_with_QR_Ax(SparseMatrix<double> sA, SparseMatrix<double> sb)
@@ -297,8 +300,10 @@ VectorXd solveConstrainedLS(SparseMatrix<double> T,MatrixXd R, SparseMatrix<doub
 	SparseMatrix<double> sEq_lhs = eq_lhs;*/
 	SparseMatrix<double> sp(n_eq, n_eq);
 
-	VectorXd x = solve_with_QR_Ax(join_matrices((T.transpose()*T), eq_lhs.transpose(), eq_lhs,sp),
+	cout << "Starting solve" << endl;
+	VectorXd x = solve_Ax(join_matrices((T.transpose()*T), eq_lhs.transpose(), eq_lhs,sp),
 		join_matrices_2x1(T.transpose()*sR, sEq_rhs));
+	cout << "Finish solve" << endl;
 
 	VectorXd x_r(n_vars);
 	for(int i=0; i<n_vars; i++)
