@@ -173,11 +173,11 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
     LU.analyzePattern(this->KKT_mat);
     LU.factorize(this->KKT_mat);
 
-    cout << "-->"<<LU.matrixL().cols() << endl;
+/*    cout << "-->"<<LU.matrixL().cols() << endl;
     cout << "-->"<<LU.matrixU().cols() << endl;
     cout << "-->"<<LU.rowsPermutation().rows() << endl;
     cout << "-->"<<LU.colsPermutation().rows() << endl;
-
+*/
 
     //This is only logs is not necesarialy for the implementation
     //logInit();
@@ -187,6 +187,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
     //for(int i=0; i<100; i++)
     for(int i=0; i<max_iter; i++)
     {
+        auto t11 = std::chrono::high_resolution_clock::now();
         //this is the time to start no necesarialy
         //t_iter_start = tic
 
@@ -259,20 +260,17 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
         */
 
     //    print_dimensions("->", this->KKT.U);
-        auto t11 = std::chrono::high_resolution_clock::now();
         //print_dimensions("KKT_rhs", this->KKT_rhs);
 
         VectorXd b = (LU.rowsPermutation().transpose())*this->KKT_rhs;
         LU.matrixL().solveInPlace(b);
         LU.matrixU().solveInPlace(b);
+        this->p_lambda = (LU.colsPermutation().transpose())*b;
 
-        this->p_lambda = b;
+        //this->p_lambda = b;
 
         //this->p_lambda = this->KKT.solve(this->KKT_rhs);
         
-        auto t12 = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
-        cout << "Iteration: " << i << " time: " <<duration << endl;
         this->p = VectorXd(this->optimProblem.n_vars,1);
 
         for(int i=0; i<this->optimProblem.n_vars; i++)
@@ -323,6 +321,9 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
         this->x_prev = this->x;
         this->x = this->y+this->t*this->p;
 
+        auto t12 = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
+        cout << "Iteration: " << i << " time: " <<duration << endl;
 
     }
 }
