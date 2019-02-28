@@ -38,7 +38,7 @@ int main()
 
     MatrixXd mV(mesh.V.rows(), mesh.V.cols()+1);
     create_column_zeros(mesh.V, mV);
-    igl::writeOBJ("isoDist_gecko.obj", mV, mesh.F);
+    igl::writeOBJ("Isodist_gecko.obj", mV, mesh.F);
 
     MatrixXd V0; 
     //Setup optimization problem
