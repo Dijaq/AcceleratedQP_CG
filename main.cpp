@@ -26,7 +26,7 @@ int main()
 	Param_State mesh;
 
 //Seccion of read a mesh
-    read_mesh_2D("data_gecko/V.csv", "data_gecko/F.csv","data_gecko/eq_lhs.csv", "data_gecko/eq_rhs.csv", mesh);
+    read_mesh_2D("data_gecko/Vx0.csv", "data_gecko/F.csv","data_gecko/eq_lhs.csv", "data_gecko/eq_rhs.csv", mesh);
     print_dimensions("V: ", mesh.V);
 
     /*cout << "F: " << mesh.F.rows() << " - " << mesh.F.cols() << endl;
@@ -38,7 +38,7 @@ int main()
 
     MatrixXd mV(mesh.V.rows(), mesh.V.cols()+1);
     create_column_zeros(mesh.V, mV);
-    igl::writeOBJ("original_gecko.obj", mV, mesh.F);
+    igl::writeOBJ("isoDist_gecko.obj", mV, mesh.F);
 
     MatrixXd V0; 
     //Setup optimization problem
