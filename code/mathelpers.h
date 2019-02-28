@@ -269,6 +269,15 @@ MatrixXd solve_Ax(SparseMatrix<double> sA, SparseMatrix<double> sb)
 	print_dimensions("b: ", b);
 }
 
+MatrixXd solve_with_QR_Ax(SparseMatrix<double> sA, SparseMatrix<double> sb)
+{
+	MatrixXd A = sA;
+	MatrixXd b = sb;
+	cout << "Starting solve" << endl;
+	A.colPivHouseholderQr().solve(b);
+	cout << "Finish solve" << endl;
+}
+
 void solveConstrainedLS(SparseMatrix<double> T,MatrixXd R, SparseMatrix<double> eq_lhs, MatrixXd eq_rhs)
 {
 	int n_vars = eq_lhs.cols();
@@ -280,7 +289,7 @@ void solveConstrainedLS(SparseMatrix<double> T,MatrixXd R, SparseMatrix<double> 
 	SparseMatrix<double> sEq_lhs = eq_lhs;*/
 	SparseMatrix<double> sp(n_eq, n_eq);
 
-	solve_Ax(join_matrices((T.transpose()*T), sR.transpose(), eq_lhs,sp),
+	solve_with_QR_Ax(join_matrices((T.transpose()*T), sR.transpose(), eq_lhs,sp),
 		join_matrices_2x1(T.transpose()*sR, sEq_rhs));
 	//T.transpose()*sR;
 	//Solve Matrix
