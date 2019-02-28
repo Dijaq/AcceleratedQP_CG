@@ -12,6 +12,7 @@
 #include "math.h"
 #include <chrono>
 #include "../class/DSparseLU.h"
+#include "../class/SparseLUPQ.h"
 #include "../class/Param_State.h"
 #include "../mex/computeMeshTranformationCoeffsMex.h"
 #include "OptimSolverIterative.h"
@@ -120,22 +121,22 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     cout << sLU.P << endl;
     cout << sLU.Q << endl;*/    
 
-    MatrixXd matrix = KKT_mat;
     /*auto t31 = std::chrono::high_resolution_clock::now();
     DSparseLU ssparseLU(matrix, true);
     auto t32 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t32 - t31).count();
     cout << "Time AQP1: " << duration << endl;*/
 
+    MatrixXd matrix = KKT_mat;
     auto t11 = std::chrono::high_resolution_clock::now();
-    DSparseLU sparseLU(matrix);
+    //SparseLUPQ sparseLUPQ(KKT_mat);
+    //this->KKT = SparseLUPQ(KKT_mat);
+    this->KKT = DSparseLU(matrix);
     auto t12 = std::chrono::high_resolution_clock::now();
     auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
     cout << "Time AQP2: " << duration1 << endl;
 
 
-    this->KKT = sparseLU;
-    //this->KKT = SparseLU(matrix);
 
     //init internal variables
     MatrixXd initZeros(this->optimProblem.n_vars+this->optimProblem.n_eq,1);
@@ -161,7 +162,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 
     //run num_iter iteration
     //for(int i=0; i<max_iter; i++)
-    for(int i=0; i<10; i++)
+    for(int i=0; i<100; i++)
     {
         //this is the time to start no necesarialy
         //t_iter_start = tic
@@ -241,7 +242,7 @@ void OptimSolverAcclQuadProx::iterate()
     print_dimensions("->", this->KKT.L);
     */
 
-    print_dimensions("->", this->KKT.U);
+//    print_dimensions("->", this->KKT.U);
     auto t11 = std::chrono::high_resolution_clock::now();
 
     this->p_lambda = this->KKT.solve(this->KKT_rhs);

@@ -291,7 +291,7 @@ VectorXd solve_with_QR_Ax(SparseMatrix<double> sA, SparseMatrix<double> sb)
 VectorXd solveConstrainedLS(SparseMatrix<double> T,MatrixXd R, SparseMatrix<double> eq_lhs, MatrixXd eq_rhs)
 {
 	int n_vars = eq_lhs.cols();
-	cout << "n_vars: " << n_vars << endl;
+	//cout << "n_vars: " << n_vars << endl;
 	int n_eq = eq_lhs.rows();
 	
 	SparseMatrix<double> sR = R.sparseView();
@@ -300,10 +300,10 @@ VectorXd solveConstrainedLS(SparseMatrix<double> T,MatrixXd R, SparseMatrix<doub
 	SparseMatrix<double> sEq_lhs = eq_lhs;*/
 	SparseMatrix<double> sp(n_eq, n_eq);
 
-	cout << "Starting solve" << endl;
+	//cout << "Starting solve" << endl;
 	VectorXd x = solve_Ax(join_matrices((T.transpose()*T), eq_lhs.transpose(), eq_lhs,sp),
 		join_matrices_2x1(T.transpose()*sR, sEq_rhs));
-	cout << "Finish solve" << endl;
+	//cout << "Finish solve" << endl;
 
 	VectorXd x_r(n_vars);
 	for(int i=0; i<n_vars; i++)
@@ -311,7 +311,7 @@ VectorXd solveConstrainedLS(SparseMatrix<double> T,MatrixXd R, SparseMatrix<doub
 		x_r(i,0) = x(i,0); 
 	}
 
-	cout << "Dimensiones: " << x.rows() << " - " << x.cols() << endl;
+	//cout << "Dimensiones: " << x.rows() << " - " << x.cols() << endl;
 
 	return x_r;
 	//T.transpose()*sR;

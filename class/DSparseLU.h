@@ -10,14 +10,17 @@ public:
 
 	Eigen::MatrixXd L;
 	Eigen::MatrixXd U;
+	Eigen::SparseMatrix<double> sL;
+	Eigen::SparseMatrix<double> sU;
 	Eigen::MatrixXd P;//This is a sparse matrix
 	Eigen::MatrixXd Q;
-	FullPivLU<MatrixXd> lu;
+	FullPivLU<MatrixXd> pivlu;
+//	SparseLU<SparseMatrix<double>> LU;
 
 	DSparseLU();
 	DSparseLU(MatrixXd smatrix, bool s);
 	DSparseLU(MatrixXd smatrix);
-	DSparseLU(SparseMatrix<double> smatrix);
+	DSparseLU(SparseMatrix<double> A);
 	MatrixXd matriz_diagonal_ones(int rows, int cols);
 	VectorXd solve(VectorXd LHS);
 	VectorXd solve_Lx(MatrixXd L, VectorXd X);
@@ -31,7 +34,7 @@ DSparseLU::DSparseLU(){}
 //Toma 8 veces mas tiempo que la implementacion propia
 DSparseLU::DSparseLU(MatrixXd smatrix, bool s)
 {
-	lu = FullPivLU<MatrixXd>(smatrix);
+	pivlu = FullPivLU<MatrixXd>(smatrix);
 	/*cout << "Original Matrix" << endl;
     cout << practice << endl;
 
@@ -132,25 +135,48 @@ DSparseLU::DSparseLU(MatrixXd smatrix)
 		}
 	}
 
-	
+	this->sL = L.sparseView();
+	this->sU = U.sparseView();	
     //cout << "Time Permutations: " << duration << endl;
 
 }
 
-DSparseLU::DSparseLU(SparseMatrix<double> smatrix)
+/*DSparseLU::DSparseLU(SparseMatrix<double> A)
 {
-	for(int i=0; i<smatrix.outerSize(); i++)
-	{
-		for(SparseMatrix<double>::InnerIterator it(smatrix, i); it; ++it)
-		{
-			cout << it.row() << " - "<< it.col() << " value: " << it.value() << endl;
-		}
-	}
+	LU.analyzePattern(A);
+	LU.factorize(A);
+
 }
 
 VectorXd DSparseLU::solve(VectorXd LHS)
 {
-	return solve_Ux(this->U,solve_Lx(this->L, (this->P.transpose()*LHS)));
+	VectorXd b = LU.rowsPermutation()*LHS;
+	LU.matrixL().solveInPlace(b);
+	LU.matrixU().solveInPlace(b);
+
+	return b;
+}*/
+
+VectorXd DSparseLU::solve(VectorXd LHS)
+{
+	VectorXd bL = (this->P.transpose()*LHS);
+
+	auto t11 = std::chrono::high_resolution_clock::now();
+	SparseLU<SparseMatrix<double>> solverL;
+	solverL.analyzePattern(this->sL);
+	solverL.factorize(this->sL);
+    auto t12 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
+    cout << "L to solve: " << duration << endl;
+	VectorXd xL = solverL.solve(bL);
+
+	SparseLU<SparseMatrix<double>> solverU;
+	solverU.analyzePattern(this->sU);
+	solverU.factorize(this->sU);
+	VectorXd xU = solverU.solve(xL);
+
+	return xU;
+	//return solve_Ux(this->U,solve_Lx(this->L, (this->P.transpose()*LHS)));
 }
 
 VectorXd DSparseLU::solve_Lx(MatrixXd L, VectorXd X)

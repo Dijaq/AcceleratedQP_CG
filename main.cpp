@@ -65,7 +65,7 @@ int main()
 
     int n_solvers = listOptimSolverAccQuadProx.size();
 
-    /*for(int i=0; i<n_solvers; i++)
+    for(int i=0; i<n_solvers; i++)
     {
         auto t21 = std::chrono::high_resolution_clock::now();
         listOptimSolverAccQuadProx[i].solveTol(TolX, TolFun, num_iter);
@@ -74,7 +74,7 @@ int main()
         cout << "Optim Solver Iter Acc Quad Prox: " << duration2 << endl;
     }
 
-    print_dimensions("x0", optimProblemAQP.x);*/
+    print_dimensions("x", optimProblemAQP.x);
 
     cout << "Finish Program" << endl;
     /*cout << "Start Practice Section" << endl;
@@ -143,13 +143,18 @@ int main()
     */
 
     print_dimensions("Fx0: ", optimProblem.x0);
-
     MatrixXd exportV = optimProblem.x0;
     //matrix_reshape(exportV, exportV.rows()/2, 2);
-
     MatrixXd nV(exportV.rows(), exportV.cols()+1);
     create_column_zeros(exportV, nV);
     igl::writeOBJ("IsoDist_cpp.obj", nV, mesh.F);
+
+    print_dimensions("Fx: ", optimProblemAQP.x);
+    MatrixXd exportVAQP = optimProblemAQP.x;
+    matrix_reshape(exportVAQP, exportVAQP.rows()/2, 2);
+    MatrixXd nAQPV(exportVAQP.rows(), exportVAQP.cols()+1);
+    create_column_zeros(exportVAQP, nAQPV);
+    igl::writeOBJ("AQP_cpp.obj", nAQPV, mesh.F);
   
 	return 0;
 }

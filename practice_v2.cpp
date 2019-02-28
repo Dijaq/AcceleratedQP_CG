@@ -66,7 +66,7 @@ Al multiplicar
 */
 void multiplicar_matrices(MatrixXd &result, MatrixXd matrixA, MatrixXd matrixB)
 {
-    /*for(int i=0; i<result.rows(); i++)
+    /*for(int i=0; i<result.rows(); i++)  m
     {
         for(int j=0; j<result.cols(); j++)
         {
