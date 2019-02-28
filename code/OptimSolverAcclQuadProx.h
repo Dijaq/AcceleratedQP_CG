@@ -12,7 +12,7 @@
 #include "math.h"
 #include <chrono>
 #include "../class/DSparseLU.h"
-#include "../class/SparseLUPQ.h"
+#include "../class/Splu.h"
 #include "../class/Param_State.h"
 #include "../mex/computeMeshTranformationCoeffsMex.h"
 #include "OptimSolverIterative.h"
@@ -30,7 +30,8 @@ public:
     MatrixXd y;
     VectorXd p;
     //SparseMatrix<double> KKT;
-    DSparseLU KKT;
+    //DSparseLU KKT;
+    Splu KKT;
     MatrixXd KKT_rhs;
     VectorXd p_lambda;
     double y_f;
@@ -131,7 +132,9 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     auto t11 = std::chrono::high_resolution_clock::now();
     //SparseLUPQ sparseLUPQ(KKT_mat);
     //this->KKT = SparseLUPQ(KKT_mat);
-    this->KKT = DSparseLU(matrix);
+    //this->KKT = DSparseLU(matrix);
+    this->KKT = Splu(KKT_mat);
+
     auto t12 = std::chrono::high_resolution_clock::now();
     auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
     cout << "Time AQP2: " << duration1 << endl;
