@@ -324,6 +324,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
         auto t12 = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
         cout << "Iteration: " << i << " time: " <<duration << endl;
+        cout << "t: " << this->t << endl;
 
     }
 }
