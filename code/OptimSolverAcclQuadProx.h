@@ -31,7 +31,7 @@ public:
     MatrixXd y;
     VectorXd p;
     //SparseMatrix<double> KKT;
-    //DSparseLU KKT;
+    DSparseLU KKT_Class;
     //Splu KKT;
     SparseMatrix<double> KKT_mat;
     MatrixXd KKT_rhs;
@@ -134,9 +134,10 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t32 - t31).count();
     cout << "Time AQP1: " << duration << endl;*/
 
-    //MatrixXd matrix = KKT_mat;
+    MatrixXd matrix = this->KKT_mat;
     auto t11 = std::chrono::high_resolution_clock::now();
     //SparseLUPQ sparseLUPQ(KKT_mat);
+    this->KKT_Class = DSparseLU(matrix);
     //this->KKT = SparseLUPQ(KKT_mat);
     //this->KKT = DSparseLU(matrix);
     //this->KKT = Splu(KKT_mat);
@@ -151,7 +152,7 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     //init internal variables
     //MatrixXd initZeros(this->optimProblem.n_vars+this->optimProblem.n_eq,1);
     //this->KKT_rhs = initZeros;
-    this->KKT_rhs = MatrixXd(this->optimProblem.n_vars+this->optimProblem.n_eq,1);
+    this->KKT_rhs = MatrixXd::Zero(this->optimProblem.n_vars+this->optimProblem.n_eq,1);
     //cout << "2*****" << (*this->KKT.LU).matrixL().rows() << endl;
 
     this->x_prev = this->x;
@@ -173,7 +174,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 {
     /*Secion of create the matriz L and U
     */
-    //export_sparsemat_to_excel(this->KKT_mat, "KKT_mat");
+    export_sparsemat_to_excel(this->KKT_mat, "KKT_mat");
     SparseLU<SparseMatrix<double>> LU;
     LU.analyzePattern(this->KKT_mat);
     LU.factorize(this->KKT_mat);
@@ -236,7 +237,8 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 
         //print_dimensions("->", this->KKT_rhs);//Dimension of 1728
         //print_dimensions("->", this->y_fgrad);
-        //cout << this->optimProblem.n_vars << endl;
+        
+        export_mat_to_excel(this->y_fgrad, "y_fgrad");
         for(int i=0; i<this->optimProblem.n_vars; i++)
         {
             this->KKT_rhs(i,0) = -this->y_fgrad(i,0);
@@ -267,17 +269,22 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
     //    print_dimensions("->", this->KKT.U);
         //print_dimensions("KKT_rhs", this->KKT_rhs);
 
-        VectorXd b = (LU.rowsPermutation().transpose())*this->KKT_rhs;
         export_mat_to_excel(this->KKT_rhs, "KKT_rhs");
+
+        /*VectorXd b = (LU.rowsPermutation().transpose())*this->KKT_rhs;
+        export_mat_to_excel(b, "b_perR");
         
         LU.matrixL().solveInPlace(b);
         LU.matrixU().solveInPlace(b);
-        this->p_lambda = (LU.colsPermutation().transpose())*b;
+        this->p_lambda = (LU.colsPermutation().transpose())*b;*/
 
 
         //this->p_lambda = b;
 
-        //this->p_lambda = this->KKT.solve(this->KKT_rhs);
+//        VectorXd prueba_lambda = this->KKT_Class.solve(this->KKT_rhs);
+        this->p_lambda = this->KKT_Class.solve(this->KKT_rhs);
+        export_mat_to_excel(this->p_lambda, "p_lambda");
+        //export_mat_to_excel(prueba_lambda, "prueba_lambda");
         
         this->p = VectorXd(this->optimProblem.n_vars,1);
 
@@ -303,6 +310,8 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 
         if(this->useLineSearchStepSizeLimit)
         {
+            export_sparsemat_to_excel(this->y.sparseView(), "1y");
+            export_mat_to_excel(this->p, "1p");
             MatrixXd tempY = this->y;
             MatrixXd tempP = this->p;
             matrix_reshape(tempY, tempY.rows()/this->optimProblem.dim, this->optimProblem.dim);

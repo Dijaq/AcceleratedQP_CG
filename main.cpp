@@ -21,7 +21,7 @@ void exportOptimProblem(OptimProblemIsoDist optimProblem);
 int main()
 {
 	//Example of gecko deformation
-	int num_iter = 1;
+	int num_iter = 50;
 	double TolX = 1e-10;
 	double TolFun = 1e-6;
 
@@ -79,6 +79,7 @@ int main()
     }
 
     print_dimensions("x", optimProblemAQP.x);
+    export_mat_to_excel(optimProblemAQP.x, "xFinal"); 
 
     cout << "Finish Program" << endl;
     /*cout << "Start Practice Section" << endl;
