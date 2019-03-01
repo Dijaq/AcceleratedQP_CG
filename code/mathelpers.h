@@ -55,11 +55,19 @@ void VectorXd_sqrt(VectorXd &vec)
 VectorXd kron(VectorXd first, VectorXd second)
 {
 	VectorXd result(first.rows()*second.rows(),1);
-	for(int i=0; i<second.rows(); i++)
+	/*for(int i=0; i<second.rows(); i++)
 	{
 		for(int j=0; j<first.rows(); j++)
 		{
 			result(j*(i+1),0) = first(j,0)*second(i,0);
+		}
+	}*/
+
+	for(int i=0; i<first.rows(); i++)
+	{
+		for(int j=0; j<second.rows(); j++)
+		{
+			result(second.rows()*i+j,0) = first(i,0)*second(j,0);
 		}
 	}
 

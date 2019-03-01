@@ -171,14 +171,18 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
 
 void OptimProblemIsoDist::setQuadraticProxy()
 {
+    //export_sparsemat_to_excel(this->T, "T");
     //cout << "T: " << this->T.rows() << endl;
     //cout << "T: " << this->T.cols() << endl;
     VectorXd ar = this->areas;
     VectorXd ones = VectorXd::Ones(pow(this->dim,2),1);
     VectorXd_sqrt(ar);
 
+    //export_mat_to_excel(kron(ar, ones), "kron_areas");
+
     SparseMatrix<double> wT = spdiag(kron(ar, ones))*this->T;
     this->H = 2*(wT.transpose()*wT);
+    //export_sparsemat_to_excel(H, "H");
     //cout << "k: "<<this->H.cols() << endl;
 
 }

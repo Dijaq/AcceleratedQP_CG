@@ -84,6 +84,33 @@ void export_mat_to_excel(MatrixXd matrix, string name)
     myfile.close();
 }
 
+
+void export_sparsemat_to_excel(SparseMatrix<double> matrix, string name)
+{
+    ofstream myfile;
+    myfile.open(name+".csv");
+    
+    for(int i=0; i<matrix.outerSize(); i++)
+    {
+        for(int j=0; j< matrix.rows(); j++)
+        {
+            for(SparseMatrix<double>::InnerIterator it(matrix, i); it; ++it)
+            {
+                if(it.row() == j)
+                    myfile << it.col() << "," << it.row() << "," << it.value() << "\n";
+                /*cout << "value: " << it.value() << endl;
+                cout << "row: "<< it.row() << endl;
+                cout << "col: "<< it.col() << endl;
+                cout << it.index() << endl;*/
+            }
+        }
+    }
+
+
+    myfile.close();
+}
+
+
 void countRowsColsCsv(istream& inStream, int &rows, int &cols)
 {
     string         line;

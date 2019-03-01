@@ -88,6 +88,10 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
 
     //SparseMatrix<double> KKT_mat;
 
+   
+    //export_sparsemat_to_excel(optimProblem.H, "H_spars");
+    //export_sparsemat_to_excel(this->optimProblem.H, "PH_spars");
+
     if(this->useQuadProxy)
     {
         SparseMatrix<double> spar(optimProblem.n_eq, optimProblem.n_eq);
@@ -169,6 +173,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 {
     /*Secion of create the matriz L and U
     */
+    //export_sparsemat_to_excel(this->KKT_mat, "KKT_mat");
     SparseLU<SparseMatrix<double>> LU;
     LU.analyzePattern(this->KKT_mat);
     LU.factorize(this->KKT_mat);
@@ -263,6 +268,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
         //print_dimensions("KKT_rhs", this->KKT_rhs);
 
         VectorXd b = (LU.rowsPermutation().transpose())*this->KKT_rhs;
+        
         LU.matrixL().solveInPlace(b);
         LU.matrixU().solveInPlace(b);
         this->p_lambda = (LU.colsPermutation().transpose())*b;
@@ -279,6 +285,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
         }
 
         //Initialize step size
+        //cout << "t1: " << this->t << endl;
         if(this->useLineSearchStepSizeMemory)
         {
             //cout << "useLineSearchStepSizeMemory" << endl;
@@ -289,6 +296,9 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             this->t_start = 1;
         }
 
+
+        //cout << "start: " << this->t_start << endl;
+
         if(this->useLineSearchStepSizeLimit)
         {
             MatrixXd tempY = this->y;
@@ -296,12 +306,15 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             matrix_reshape(tempY, tempY.rows()/this->optimProblem.dim, this->optimProblem.dim);
             matrix_reshape(tempP,tempP.rows()/this->optimProblem.dim, this->optimProblem.dim);
             //cout << "useLineSearchStepLimit" << endl;
+            //cout << "getstep: " << this->optimProblem.getMaxStep(tempY, tempP) << endl;
             this->t = min(this->t_start, this->lineSearchStepSizeLimitFactor*this->optimProblem.getMaxStep(tempY, tempP));
         }
         else
         {
             this->t = this->t_start;
         }
+
+        //cout << "t2: " << this->t << endl;
 
         //Line search
         if(this->useLineSearch)
