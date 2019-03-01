@@ -334,6 +334,8 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             double linesearch_cond_lhs, linesearch_cond_rhs;
             computeLineSearchCond(linesearch_cond_lhs, linesearch_cond_rhs);
 
+            //cout << linesearch_cond_lhs << " - " << linesearch_cond_rhs << endl;
+
             while(linesearch_cond_lhs > linesearch_cond_rhs)
             {
               //  cout << linesearch_cond_lhs << " > " << linesearch_cond_rhs << endl;
@@ -520,7 +522,7 @@ void OptimSolverAcclQuadProx::computeLineSearchCond(double &linesearch_cond_lhs,
 //    cout << "->> evaluateValue" << endl;
     this->optimProblem.evaluateValue(tempY, linesearch_cond_lhs);
     this->f_count++;
-    linesearch_cond_rhs = this->y_f+this->ls_alpha*this->t*this->y_fgrad.transpose()*tempP;
+    linesearch_cond_rhs = this->y_f+this->ls_alpha*this->t*this->y_fgrad.transpose()*this->p;
 }
 
 #endif

@@ -167,7 +167,7 @@ VectorXd DSparseLU::solve(VectorXd LHS)
 	solverL.factorize(this->sL);
     auto t12 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
-    cout << "L to solve: " << duration << endl;
+    //cout << "L to solve: " << duration << endl;
 	VectorXd xL = solverL.solve(bL);
 
 	SparseLU<SparseMatrix<double>> solverU;

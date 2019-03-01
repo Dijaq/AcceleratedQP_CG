@@ -47,7 +47,7 @@ int main()
     cout << "Optim Problem" << endl;
     auto t01 = std::chrono::high_resolution_clock::now();
     OptimProblemIsoDist optimProblem(mesh, V0, 25);
-    exportOptimProblem(optimProblem);
+    //exportOptimProblem(optimProblem);
     auto t02 = std::chrono::high_resolution_clock::now();
     auto durationOP = std::chrono::duration_cast<std::chrono::milliseconds>(t02 - t01).count();
     cout << "End Optim Problem: " << durationOP << endl;
@@ -155,7 +155,8 @@ int main()
     igl::writeOBJ("IsoDist_cpp.obj", nV, mesh.F);
 
     print_dimensions("Fx: ", optimProblemAQP.x);
-    MatrixXd exportVAQP = optimProblemAQP.x;
+    //MatrixXd exportVAQP = optimProblemAQP.x;
+    MatrixXd exportVAQP = listOptimSolverAccQuadProx[0].x;
     matrix_reshape(exportVAQP, exportVAQP.rows()/2, 2);
     MatrixXd nAQPV(exportVAQP.rows(), exportVAQP.cols()+1);
     create_column_zeros(exportVAQP, nAQPV);
