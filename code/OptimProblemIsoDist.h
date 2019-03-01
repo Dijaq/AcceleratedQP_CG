@@ -216,9 +216,9 @@ void OptimProblemIsoDist::evaluateFunctional(MatrixXd x, bool doVal, bool doGrad
 {
     //print_dimensions("T: ", this->T);
     //print_dimensions("x: ", x);
-    
     this->Tx = this->T*x;
     this->Tx_grad = this->Tx;
+    export_mat_to_excel(Tx_grad, "Tx");//Este esta medio raro
     if(doVal || doGrad)
     {
         //cout << "Inpute do Val" << endl;

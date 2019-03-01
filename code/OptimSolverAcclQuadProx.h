@@ -111,7 +111,7 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
         this->KKT_mat = join_matrices(ones, optimProblem.eq_lhs.transpose(), optimProblem.eq_lhs, spar);
     }
 
-    
+    export_sparsemat_to_excel(this->KKT_mat, "KKT_mat");
 
     /*SparseMatrix<double> smatrix(3,3);
     smatrix.insert(2,1) = -5;
@@ -268,10 +268,12 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
         //print_dimensions("KKT_rhs", this->KKT_rhs);
 
         VectorXd b = (LU.rowsPermutation().transpose())*this->KKT_rhs;
+        export_mat_to_excel(this->KKT_rhs, "KKT_rhs");
         
         LU.matrixL().solveInPlace(b);
         LU.matrixU().solveInPlace(b);
         this->p_lambda = (LU.colsPermutation().transpose())*b;
+
 
         //this->p_lambda = b;
 
@@ -285,7 +287,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
         }
 
         //Initialize step size
-        //cout << "t1: " << this->t << endl;
+        cout << "t1: " << this->t << endl;
         if(this->useLineSearchStepSizeMemory)
         {
             //cout << "useLineSearchStepSizeMemory" << endl;
@@ -314,7 +316,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             this->t = this->t_start;
         }
 
-        //cout << "t2: " << this->t << endl;
+        cout << "t2: " << this->t << endl;
 
         //Line search
         if(this->useLineSearch)
@@ -326,10 +328,12 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             while(linesearch_cond_lhs > linesearch_cond_rhs)
             {
               //  cout << linesearch_cond_lhs << " > " << linesearch_cond_rhs << endl;
+                //cout << "beta: " << this->ls_beta<< endl;
                 this->t = this->ls_beta*this->t;
                 computeLineSearchCond(linesearch_cond_lhs, linesearch_cond_rhs);
             }
         }
+        cout << "t3: " << this->t << endl;
 
         this->x_prev = this->x;
         this->x = this->y+this->t*this->p;
@@ -337,7 +341,6 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
         auto t12 = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
         cout << "Iteration: " << i << " time: " <<duration << endl;
-        cout << "t: " << this->t << endl;
 
     }
 }

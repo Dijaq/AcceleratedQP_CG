@@ -19,7 +19,7 @@ using namespace Eigen;
 int main()
 {
 	//Example of gecko deformation
-	int num_iter = 200;
+	int num_iter = 1;
 	double TolX = 1e-10;
 	double TolFun = 1e-6;
 
