@@ -16,6 +16,8 @@ using namespace std;
 using namespace cv;
 using namespace Eigen;
 
+void exportOptimProblem(OptimProblemIsoDist optimProblem);
+
 int main()
 {
 	//Example of gecko deformation
@@ -45,6 +47,7 @@ int main()
     cout << "Optim Problem" << endl;
     auto t01 = std::chrono::high_resolution_clock::now();
     OptimProblemIsoDist optimProblem(mesh, V0, 25);
+    exportOptimProblem(optimProblem);
     auto t02 = std::chrono::high_resolution_clock::now();
     auto durationOP = std::chrono::duration_cast<std::chrono::milliseconds>(t02 - t01).count();
     cout << "End Optim Problem: " << durationOP << endl;
@@ -160,7 +163,36 @@ int main()
 	return 0;
 }
 
+void exportOptimProblem(OptimProblemIsoDist optimProblem)
+{
+    /*export_sparsemat_to_excel(optimProblem.T, "T");
+    export_sparsemat_to_excel(optimProblem.eq_lhs, "eq_lhs");
+    export_sparsemat_to_excel(optimProblem.H, "H");
+    export_mat_to_excel(optimProblem.eq_rhs, "eq_rhs");
+    export_mat_to_excel(optimProblem.x0, "x0"); 
+    cout << "LOG" << endl;
+    cout << "n_vars: "<< optimProblem.n_vars << endl;
+    cout << "n_eq: "<< optimProblem.n_eq << endl;
+    cout << "ENDLOG" << endl;*/
 
+    export_mat_to_excel(optimProblem.V, "V"); 
+    export_mat_to_excel(optimProblem.F, "F"); 
+    export_mat_to_excel(optimProblem.areas, "areas"); 
+    export_mat_to_excel(optimProblem.Tx, "Tx"); 
+    export_mat_to_excel(optimProblem.R, "R"); 
+    export_mat_to_excel(optimProblem.Tx_grad, "Tx_grad"); 
+
+    cout << "LOG" << endl;
+    cout << "dim: "<< optimProblem.dim << endl;
+    cout << "n_vert: "<< optimProblem.n_vert << endl;
+    cout << "n_tri: "<< optimProblem.n_tri << endl;
+    cout << "f_val: "<< optimProblem.f_val << endl;
+    cout << "flips: "<< optimProblem.flips << endl;
+    cout << "localHess: "<< optimProblem.localHess << endl;
+    cout << "initArapIter: "<< optimProblem.initArapIter << endl;
+    cout << "ENDLOG" << endl;
+
+}
   /*int n = 3;
     VectorXd x(n), b(n);
     SparseMatrix<double> A(3,3);

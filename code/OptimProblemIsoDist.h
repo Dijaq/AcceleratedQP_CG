@@ -64,6 +64,7 @@ public:
     void evaluateGrad(MatrixXd x, double &f, VectorXd &f_grad);
     void evaluateValueGrad(MatrixXd x, double &f, VectorXd &f_grad);
     void evaluateFunctional(MatrixXd x, bool doVal, bool doGrad, bool doHess, double &f, VectorXd &f_grad);
+    MatrixXd sparseMul(SparseMatrix<double> A, MatrixXd B);
 };
 
 OptimProblemIsoDist::OptimProblemIsoDist()
@@ -117,21 +118,29 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
     {
         //Here in our example
         this->x0 = colStack(this->V);
+ //       export_mat_to_excel(this->x0, "stackx0");
+        //SparseMatrix<double> x0 = this->x0.sparseView();
         /*Falta implementar revisar el codigo fuente*/
+        //cout << "Tx: " << this->T.adjoint().rows() << " - " << this->T.adjoint().cols() << endl;
+        //cout << "Tx0: " << x0.rows() << " - " << x0.cols() << endl;
+        //export_mat_to_excel(sparseMul(this->T, x0), "mul");
         for(int arapIter = 0; arapIter<this->initArapIter; arapIter++)
         {
+
+            //this->Tx = this->T*this->x0;
             this->Tx = this->T*this->x0;
+            export_mat_to_excel(this->Tx, "Tx"+to_string(arapIter)); 
             this->R = this->Tx;
             projBlockRotation2x2(this->R, this->dim);
             //this->x0 = solveConstrainedLS(this->T, this->R, this->eq_lhs, this->eq_rhs);
 
-            if(arapIter == 0)
+            /*if(arapIter == 0)
             {
                 print_dimensions("T: ", this->T);
                 print_dimensions("R: ", this->R);
                 print_dimensions("EQ_LHS: ", this->eq_lhs);
                 print_dimensions("EQ_RHS: ", this->eq_rhs);
-            }
+            }*/
             //This is too low, falta mejorar
             this->x0 = solveConstrainedLS(this->T, this->R, this->eq_lhs, this->eq_rhs);
         }
@@ -167,6 +176,27 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
 
     //Check if the solution is orientation preserving
     //this->Tx = this->T*colStack(x0);
+}
+
+MatrixXd OptimProblemIsoDist::sparseMul(SparseMatrix<double> A, MatrixXd B)
+{
+    MatrixXd sparseMul = MatrixXd::Zero(A.rows(), 1);
+
+    for(int i=0; i< A.outerSize(); i++)
+    {
+        for(SparseMatrix<double>::InnerIterator it(A, i); it; ++it)
+        {
+            sparseMul(it.row(),0) += it.value()*B(it.col(),0); 
+            if(it.row() == 1)
+            {
+                cout << "-->"<< "("<< it.row()<<","<< it.col()<<")"<< sparseMul(it.row(),0) << " : " << it.value()*B(it.col(),0) << endl;
+            }
+            //sparseMul.insert(it.row(), it.col()) = it.value();
+        }
+    }
+
+    return sparseMul;
+
 }
 
 void OptimProblemIsoDist::setQuadraticProxy()
@@ -218,7 +248,7 @@ void OptimProblemIsoDist::evaluateFunctional(MatrixXd x, bool doVal, bool doGrad
     //print_dimensions("x: ", x);
     this->Tx = this->T*x;
     this->Tx_grad = this->Tx;
-    export_mat_to_excel(Tx_grad, "Tx");//Este esta medio raro
+    //export_mat_to_excel(Tx_grad, "Tx");//Este esta medio raro
     if(doVal || doGrad)
     {
         //cout << "Inpute do Val" << endl;
