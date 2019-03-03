@@ -43,7 +43,7 @@ public:
     int localHess;
 
     //Parameters
-    float maxStepTol = 1e-10;
+    float maxStepTol = 1e-8;
     int initArapIter;
 
     //bd projection parameters
@@ -124,12 +124,13 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
         //cout << "Tx: " << this->T.adjoint().rows() << " - " << this->T.adjoint().cols() << endl;
         //cout << "Tx0: " << x0.rows() << " - " << x0.cols() << endl;
         //export_mat_to_excel(sparseMul(this->T, x0), "mul");
+        sparseMul(this->T,x0);
         for(int arapIter = 0; arapIter<this->initArapIter; arapIter++)
         {
 
             //this->Tx = this->T*this->x0;
             this->Tx = this->T*this->x0;
-            export_mat_to_excel(this->Tx, "Tx"+to_string(arapIter)); 
+            //export_mat_to_excel(this->Tx, "Tx"+to_string(arapIter)); 
             this->R = this->Tx;
             projBlockRotation2x2(this->R, this->dim);
             //this->x0 = solveConstrainedLS(this->T, this->R, this->eq_lhs, this->eq_rhs);
@@ -189,7 +190,7 @@ MatrixXd OptimProblemIsoDist::sparseMul(SparseMatrix<double> A, MatrixXd B)
             sparseMul(it.row(),0) += it.value()*B(it.col(),0); 
             if(it.row() == 1)
             {
-                cout << "-->"<< "("<< it.row()<<","<< it.col()<<")"<< sparseMul(it.row(),0) << " : " << it.value()*B(it.col(),0) << endl;
+                cout << "-->"<< "("<< it.row()<<","<< it.col()<<")"<< it.value() << " : " << B(it.col(),0) <<" = "<< it.value()*B(it.col(),0) << endl;//sparseMul(it.row(),0)
             }
             //sparseMul.insert(it.row(), it.col()) = it.value();
         }
@@ -247,6 +248,8 @@ void OptimProblemIsoDist::evaluateFunctional(MatrixXd x, bool doVal, bool doGrad
     //print_dimensions("T: ", this->T);
     //print_dimensions("x: ", x);
     this->Tx = this->T*x;
+    export_mat_to_excel(this->Tx, "Tx_funn");
+    export_mat_to_excel(x, "x_funn");// regular
     this->Tx_grad = this->Tx;
     //export_mat_to_excel(Tx_grad, "Tx");//Este esta medio raro
     if(doVal || doGrad)
@@ -267,8 +270,9 @@ void OptimProblemIsoDist::evaluateFunctional(MatrixXd x, bool doVal, bool doGrad
 
     if(doGrad)
     {
-        //print_dimensions("->", this->Tx_grad);
-        //print_dimensions("->", this->T);
+        export_mat_to_excel(this->Tx_grad, "Tx_gradd");
+        //print_dimensions("Tx->", this->Tx_grad);
+        //print_dimensions("T->", this->T);
         f_grad = (this->Tx_grad.transpose()*this->T).transpose();
     }
 

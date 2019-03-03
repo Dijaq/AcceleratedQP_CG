@@ -159,7 +159,7 @@ VectorXd DSparseLU::solve(VectorXd LHS)
 
 VectorXd DSparseLU::solve(VectorXd LHS)
 {
-	VectorXd bL = (this->P.transpose()*LHS);
+	/*VectorXd bL = (this->P.transpose()*LHS);
 
 	auto t11 = std::chrono::high_resolution_clock::now();
 	SparseLU<SparseMatrix<double>> solverL;
@@ -175,8 +175,8 @@ VectorXd DSparseLU::solve(VectorXd LHS)
 	solverU.factorize(this->sU);
 	VectorXd xU = solverU.solve(xL);
 
-	return xU;
-	//return solve_Ux(this->U,solve_Lx(this->L, (this->P.transpose()*LHS)));
+	return xU;*/
+	return solve_Ux(this->U,solve_Lx(this->L, (this->P.transpose()*LHS)));
 }
 
 VectorXd DSparseLU::solve_Lx(MatrixXd L, VectorXd X)

@@ -36,7 +36,7 @@ public:
     SparseMatrix<double> KKT_mat;
     MatrixXd KKT_rhs;
     VectorXd p_lambda;
-    double y_f;
+    double y_f = 0;
     VectorXd y_fgrad;
     float t_start;
     int t_init; //Store initialization time
@@ -174,6 +174,10 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 {
     /*Secion of create the matriz L and U
     */
+    //cout << "varsssss: "<< this->optimProblem.n_vars << endl;
+    this->p = VectorXd::Zero(this->optimProblem.n_vars,1);
+    this->y_fgrad = VectorXd::Zero(this->optimProblem.n_vars,1);
+
     export_sparsemat_to_excel(this->KKT_mat, "KKT_mat");
     SparseLU<SparseMatrix<double>> LU;
     LU.analyzePattern(this->KKT_mat);
@@ -222,6 +226,9 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             this->y = this->x;
         }
 
+        export_mat_to_excel(this->y_fgrad, "y_fgrad_test"+to_string(i));
+        //cout << "y_fff: " << this->y_f << endl;
+
         //Quadratic proxy minimization
         if(this->useLineSearch)
         {
@@ -237,11 +244,56 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 
         //print_dimensions("->", this->KKT_rhs);//Dimension of 1728
         //print_dimensions("->", this->y_fgrad);
+
         
-        export_mat_to_excel(this->y_fgrad, "y_fgrad");
+        //export_mat_to_excel(this->y_fgrad, "y_fgrad");
         for(int i=0; i<this->optimProblem.n_vars; i++)
         {
             this->KKT_rhs(i,0) = -this->y_fgrad(i,0);
+            /*if(i < 1597 || i > 1607)
+                this->KKT_rhs(i,0) = -this->y_fgrad(i,0);
+            else
+            if(i == 1597)
+                this->KKT_rhs(i,0) = -0.00000000000082676;
+                else
+                    if(i == 1598)
+                        this->KKT_rhs(i,0) = -0.00000000000264;
+                    else
+                        if(i == 1599)
+                            this->KKT_rhs(i,0) = 0.0000000000017702;
+                        else
+                            if(i == 1600)
+                                this->KKT_rhs(i,0) = 0.0000000000010888;
+                            else
+                                if(i == 1601)
+                                    this->KKT_rhs(i,0) = 0.0000000000016224;
+                                else
+                                    if(i == 1602)
+                                        this->KKT_rhs(i,0) = -0.00000000000066687;
+                                    else
+                                        if(i == 1603)
+                                            this->KKT_rhs(i,0) = -0.0000000000013383;
+                                        else
+                                            if(i == 1604)
+                                                this->KKT_rhs(i,0) = -0.00000000000014358;
+                                            else
+                                                if(i == 1605)
+                                                    this->KKT_rhs(i,0) = -0.0000000000014139;
+                                                else
+                                                    if(i == 1606)
+                                                        this->KKT_rhs(i,0) = 0.0000000000008395;
+                                                    else
+                                                        if(i == 1607)
+                                                            this->KKT_rhs(i,0) = -0.00000000000022301;*/
+                
+                
+                
+                
+                
+                
+
+
+            
         }
 
         /*Prueba matrix por descompistion LU and solve
@@ -283,15 +335,15 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 
 //        VectorXd prueba_lambda = this->KKT_Class.solve(this->KKT_rhs);
         this->p_lambda = this->KKT_Class.solve(this->KKT_rhs);
-        export_mat_to_excel(this->p_lambda, "p_lambda");
         //export_mat_to_excel(prueba_lambda, "prueba_lambda");
         
-        this->p = VectorXd(this->optimProblem.n_vars,1);
 
         for(int i=0; i<this->optimProblem.n_vars; i++)
         {
             this->p(i,0) = this->p_lambda(i,0);
         }
+
+        export_mat_to_excel(this->p, "ValidarDatos/pc"+to_string(i+1));
 
         //Initialize step size
         cout << "t1: " << this->t << endl;
@@ -305,6 +357,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             this->t_start = 1;
         }
 
+        cout << "t_start: " << this->t_start << endl;
 
         //cout << "start: " << this->t_start << endl;
 
@@ -318,6 +371,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             matrix_reshape(tempP,tempP.rows()/this->optimProblem.dim, this->optimProblem.dim);
             //cout << "useLineSearchStepLimit" << endl;
             //cout << "getstep: " << this->optimProblem.getMaxStep(tempY, tempP) << endl;
+            cout << "min: " << this->optimProblem.getMaxStep(tempY, tempP) << endl;
             this->t = min(this->t_start, this->lineSearchStepSizeLimitFactor*this->optimProblem.getMaxStep(tempY, tempP));
         }
         else
@@ -334,11 +388,11 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             double linesearch_cond_lhs, linesearch_cond_rhs;
             computeLineSearchCond(linesearch_cond_lhs, linesearch_cond_rhs);
 
-            //cout << linesearch_cond_lhs << " - " << linesearch_cond_rhs << endl;
+            cout << "---------->"<<linesearch_cond_lhs << " - " << linesearch_cond_rhs << endl;
 
             while(linesearch_cond_lhs > linesearch_cond_rhs)
             {
-              //  cout << linesearch_cond_lhs << " > " << linesearch_cond_rhs << endl;
+                cout << linesearch_cond_lhs << " <------www------> " << linesearch_cond_rhs << endl;
                 //cout << "beta: " << this->ls_beta<< endl;
                 this->t = this->ls_beta*this->t;
                 computeLineSearchCond(linesearch_cond_lhs, linesearch_cond_rhs);
