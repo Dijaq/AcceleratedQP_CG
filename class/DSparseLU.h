@@ -30,12 +30,167 @@ public:
 DSparseLU::DSparseLU(){}
 
 
-/*LU implementation of Eigen*/
+DSparseLU::DSparseLU(MatrixXd smatrix, bool s)
+{
+	cout << "constructor" << endl;
+	
+	this->P = MatrixXd::Identity(smatrix.rows(), smatrix.cols());
+	this->Q = MatrixXd::Identity(smatrix.rows(), smatrix.cols());
+
+	/*for(int i=smatrix.rows()-1; i>=0; i--)
+	{
+		int contador = 1;
+		for(int j=smatrix.cols()-1; j>=0; j--)
+		{
+			if(smatrix(i,j) != 0)
+			{
+				permutationP(i,j) = permutationP(i,j)+contador;
+				contador++;
+			}
+		}
+
+	}
+
+	for(int j=smatrix.rows()-1; j>=0; j--)
+	{
+		int contador = 1;
+		for(int i=smatrix.cols()-1; i>=0; i--)
+		{
+			if(smatrix(i,j) != 0)
+			{
+				permutationQ(i,j) = permutationQ(i,j)+contador;
+				contador++;
+			}
+		}
+
+	}*/
+
+//Create matriz de permutation of LU
+	this->U = smatrix;
+
+	/*cout << "Permutation P" << endl;
+	cout << permutationP << endl;
+
+	cout << "Permutation Q" << endl;
+	cout << permutationQ << endl;*/
+
+	for(int k=0; k<smatrix.rows(); k++)
+	{
+		//This matrix contain the number of elements at rigth of each row
+		MatrixXd permutationP = MatrixXd::Zero(smatrix.rows(), smatrix.cols());
+		//This matrix contain the number of elements at down of each col
+		MatrixXd permutationQ = MatrixXd::Zero(smatrix.rows(), smatrix.cols());
+		
+		/*Create the Matrix of Permutation of count rows and cols*/
+		for(int i=this->U.rows()-1; i>=k; i--)
+		{
+			int contador = 1;
+			for(int j=this->U.cols()-1; j>=k; j--)
+			{
+				if(this->U(i,j) != 0)
+				{
+					permutationP(i,j) = permutationP(i,j)+contador;
+					contador++;
+				}
+			}
+
+		}
+		
+		/*End of the Matrix of Permutation of count rows and cols*/
+
+		int select_row = k;
+		int value_row = 0;
+
+		for(int i=k; i<permutationP.rows(); i++)
+		{
+			if(value_row < permutationP(i,k))
+			{
+				value_row = permutationP(i,k);
+				select_row = i;
+			}	
+		}
+
+		MatrixXd tempU_row;
+		tempU_row = this->U.row(k);
+		this->U.row(k) = this->U.row(select_row);
+		this->U.row(select_row) = tempU_row;
+
+		/*MatrixXd tempPermuP;
+		tempPermuP = permutationP.row(k);
+		permutationP.row(k) = permutationP.row(select_row);
+		permutationP.row(select_row) = tempPermuP;*/
+
+		MatrixXd tempP;
+		tempP = this->P.row(k);
+		this->P.row(k) = this->P.row(select_row);
+		this->P.row(select_row) = tempP;
+
+
+		/*Create the Matrix of Permutation of count rows and cols*/
+		for(int j=this->U.rows()-1; j>=k; j--)
+		{
+			int contador = 1;
+			for(int i=this->U.cols()-1; i>=k; i--)
+			{
+				if(this->U(i,j) != 0)
+				{
+					permutationQ(i,j) = permutationQ(i,j)+contador;
+					contador++;
+				}
+			}
+
+		}
+		/*End of the Matrix of Permutation of count rows and cols*/
+
+		int select_col = k;
+		int value_col = smatrix.cols()+1;
+
+		for(int j=k; j<smatrix.cols(); j++)
+		{
+			if(permutationQ(k,j) < value_col && permutationQ(k,j) > 0)
+			{
+				value_col = permutationQ(k,j);
+				select_col = j;
+			}	
+		}		
+
+		MatrixXd tempU_col;
+		tempU_col = this->U.col(k);
+		this->U.col(k) = this->U.col(select_col);
+		this->U.col(select_col) = tempU_col;
+
+		/*MatrixXd tempPermuQ;
+		tempPermuQ = permutationQ.col(k);
+		permutationQ.col(k) = permutationQ.col(select_col);
+		permutationQ.col(select_col) = tempPermuQ;*/
+
+		MatrixXd tempQ;
+		tempQ = this->Q.col(k);
+		this->Q.col(k) = this->Q.col(select_col);
+		this->Q.col(select_col) = tempQ;
+	}
+
+
+	cout << "Matrix U" << endl;
+	cout << this->U << endl;
+
+	cout << "Matrix P" << endl;
+	cout << this->P << endl;
+
+	cout << "Matrix Q" << endl;
+	cout << this->Q << endl;
+
+	/*cout << permutationP << endl;
+	cout << permutationQ << endl;*/
+
+	cout << "imprimir " << endl;
+}
+/*LU implementation of Eigen
 //Toma 8 veces mas tiempo que la implementacion propia
 DSparseLU::DSparseLU(MatrixXd smatrix, bool s)
 {
 	pivlu = FullPivLU<MatrixXd>(smatrix);
-	/*cout << "Original Matrix" << endl;
+	cout << "Original Matrix" << endl;
     cout << practice << endl;
 
     FullPivLU<MatrixXd> lu(practice);
@@ -52,8 +207,8 @@ DSparseLU::DSparseLU(MatrixXd smatrix, bool s)
     cout << "Original Matrix: " << endl;
     cout << lu.permutationP().inverse()*l*u*lu.permutationQ().inverse() << endl;
 
-    cout << lu.permutationP().inverse() << endl;*/
-}
+    cout << lu.permutationP().inverse() << endl;
+}*/
 
 DSparseLU::DSparseLU(MatrixXd smatrix)
 {
@@ -135,11 +290,21 @@ DSparseLU::DSparseLU(MatrixXd smatrix)
 		}
 	}
 
-	this->sL = L.sparseView();
-	this->sU = U.sparseView();	
+	export_mat_to_excel(this->L, "ValidarDatos/LL_in");
+	export_mat_to_excel(this->U, "ValidarDatos/UU_in");	
+
+	this->sL = this->L.sparseView();
+	this->sU = this->U.sparseView();	
     //cout << "Time Permutations: " << duration << endl;
 
 }
+
+DSparseLU::DSparseLU(SparseMatrix<double> A)
+{
+	cout << "------:::::::>>>>>" << A.nonZeros();
+}
+
+
 
 /*DSparseLU::DSparseLU(SparseMatrix<double> A)
 {
@@ -176,31 +341,38 @@ VectorXd DSparseLU::solve(VectorXd LHS)
 	VectorXd xU = solverU.solve(xL);
 
 	return xU;*/
+
+	print_dimensions( "LLLLLLLLLLLLLLLLL: ", this->L);
+	print_dimensions( "UUUUUUUUUUUUUUUUU: ", this->U);
+
 	return solve_Ux(this->U,solve_Lx(this->L, (this->P.transpose()*LHS)));
 }
 
 VectorXd DSparseLU::solve_Lx(MatrixXd L, VectorXd X)
 {
+	export_mat_to_excel(L, "ValidarDatos/LLL_in");
 	for(int k=0; k<L.rows(); k++)
 	{
 		//cout << smatrix << endl;
 		for(int i=k+1; i<L.rows(); i++)
 		{
-			float first = L(i,k);
 			if(L(i,k) != 0)
 			{
+				float first = L(i,k);
 				L.row(i) = L.row(i)-(first/L(k,k))*L.row(k);
 				/*for(int j=0; j<i; j++)
 				{
 					//cout << "i: " << i << " j: " << j << " values: " << smatrix(i,k) <<" - " <<smatrix(k,k) << " - " <<smatrix(k,j) << endl;
 					L(i,j) = L(i,j)-(first/L(k,k))*L(k,j);
 				}*/
+				X(i,0) = X(i,0)-(first/L(k,k))*X(k,0);
 			}
 
 			//cout << "Num/Den: " << first << "/" << L(k,k) << " val: " << X(i,0) << endl;
-			X(i,0) = X(i,0)-(first/L(k,k))*X(k,0);
 		}
 	}
+
+	export_mat_to_excel(L, "ValidarDatos/LLL_out");
 	//cout << "L: " <<L << endl;
 	//cout << "X: " << X << endl;
 	return X;
@@ -208,14 +380,15 @@ VectorXd DSparseLU::solve_Lx(MatrixXd L, VectorXd X)
 
 VectorXd DSparseLU::solve_Ux(MatrixXd U, VectorXd X)
 {
+	export_mat_to_excel(U, "ValidarDatos/UUU_in");
 	for(int k=U.rows()-1; k>=0; k--)
 	{
 		//cout << smatrix << endl;
 		for(int i=k-1; i>=0; i--)
 		{
-			float first = U(i,k);
 			if(U(i,k) != 0)
 			{
+				float first = U(i,k);
 				U.row(i) = U.row(i)-(first/U(k,k))*U.row(k);
 				/*
 				for(int j=U.cols()-1; j>i; j--)
@@ -223,10 +396,10 @@ VectorXd DSparseLU::solve_Ux(MatrixXd U, VectorXd X)
 					//cout << "i: " << i << " j: " << j << " values: " << smatrix(i,k) <<" - " <<smatrix(k,k) << " - " <<smatrix(k,j) << endl;
 					U(i,j) = U(i,j)-(first/U(k,k))*U(k,j);
 				}*/
+				X(i,0) = X(i,0)-(first/U(k,k))*X(k,0);
 			}
 
 			//cout << "Num/Den: " << first << "/" << L(k,k) << " val: " << X(i,0) << endl;
-			X(i,0) = X(i,0)-(first/U(k,k))*X(k,0);
 		}
 	}
 
@@ -236,6 +409,8 @@ VectorXd DSparseLU::solve_Ux(MatrixXd U, VectorXd X)
 		U(i,i) /= div;
 		X(i,0) /= div;
 	}
+
+	export_mat_to_excel(U, "ValidarDatos/UUU_out");
 	//cout << "U: " <<U << endl;
 	//cout << "X: " << X << endl;
 	return X;

@@ -21,7 +21,7 @@ void exportOptimProblem(OptimProblemIsoDist optimProblem);
 int main()
 {
 	//Example of gecko deformation
-	int num_iter = 50;
+	int num_iter = 20;
 	double TolX = 1e-10;
 	double TolFun = 1e-6;
 

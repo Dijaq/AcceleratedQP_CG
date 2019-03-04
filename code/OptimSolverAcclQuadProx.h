@@ -96,7 +96,10 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     {
         SparseMatrix<double> spar(optimProblem.n_eq, optimProblem.n_eq);
         //auto t11 = std::chrono::high_resolution_clock::now();
+        export_sparsemat_to_excel(optimProblem.eq_lhs, "ValidarDatos/eq_lhs_load");
         this->KKT_mat = join_matrices(optimProblem.H, optimProblem.eq_lhs.transpose(), optimProblem.eq_lhs, spar);
+        MatrixXd m = this->KKT_mat;
+        export_mat_to_excel(m, "ValidarDatos/KKT_matmm");
         //auto t12 = std::chrono::high_resolution_clock::now();
         //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
         //cout << "Time Sparse: " << duration << endl;
@@ -111,7 +114,6 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
         this->KKT_mat = join_matrices(ones, optimProblem.eq_lhs.transpose(), optimProblem.eq_lhs, spar);
     }
 
-    export_sparsemat_to_excel(this->KKT_mat, "KKT_mat");
 
     /*SparseMatrix<double> smatrix(3,3);
     smatrix.insert(2,1) = -5;
@@ -134,11 +136,30 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t32 - t31).count();
     cout << "Time AQP1: " << duration << endl;*/
 
+    /*SparseMatrix<double> pract(3,3);
+    pract.insert(0,0) = 3;
+    pract.insert(1,1) = 7;
+    pract.insert(2,0) = 1;
+    pract.insert(2,1) = 2;
+    pract.insert(2,2) = 1;*/
+
+
     MatrixXd matrix = this->KKT_mat;
+    export_mat_to_excel(matrix, "c_KKT_matm");
     auto t11 = std::chrono::high_resolution_clock::now();
     //SparseLUPQ sparseLUPQ(KKT_mat);
-    this->KKT_Class = DSparseLU(matrix);
     //this->KKT = SparseLUPQ(KKT_mat);
+    //DSparseLU(matrix);
+    cout << "init matrix" << endl;
+    MatrixXd m = MatrixXd::Zero(3,3);
+    m(0,0) = 3;
+    m(1,1) = 7;
+    m(2,0) = 1;
+    m(2,1) = 2;
+    m(2,2) = 1;
+    this->KKT_Class = DSparseLU(m, true);
+    //this->KKT_Class = DSparseLU(matrix, true);
+    export_mat_to_excel(this->KKT_Class.P.transpose()*this->KKT_Class.L*this->KKT_Class.U, "c_LU");
     //this->KKT = DSparseLU(matrix);
     //this->KKT = Splu(KKT_mat);
     //cout << "***" << this->KKT.LU.matrixL().rows() << endl;
@@ -226,7 +247,9 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             this->y = this->x;
         }
 
-        export_mat_to_excel(this->y_fgrad, "y_fgrad_test"+to_string(i));
+        export_mat_to_excel(this->y, "ValidarDatos/c_y"+to_string(i));
+        export_mat_to_excel(this->x, "ValidarDatos/c_x"+to_string(i));
+        export_mat_to_excel(this->x_prev, "ValidarDatos/c_x_prev"+to_string(i));
         //cout << "y_fff: " << this->y_f << endl;
 
         //Quadratic proxy minimization
@@ -245,56 +268,15 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
         //print_dimensions("->", this->KKT_rhs);//Dimension of 1728
         //print_dimensions("->", this->y_fgrad);
 
-        
+        export_mat_to_excel(this->y_fgrad, "ValidarDatos/c_y_fgrad"+to_string(i));
         //export_mat_to_excel(this->y_fgrad, "y_fgrad");
         for(int i=0; i<this->optimProblem.n_vars; i++)
         {
-            this->KKT_rhs(i,0) = -this->y_fgrad(i,0);
-            /*if(i < 1597 || i > 1607)
-                this->KKT_rhs(i,0) = -this->y_fgrad(i,0);
-            else
-            if(i == 1597)
-                this->KKT_rhs(i,0) = -0.00000000000082676;
-                else
-                    if(i == 1598)
-                        this->KKT_rhs(i,0) = -0.00000000000264;
-                    else
-                        if(i == 1599)
-                            this->KKT_rhs(i,0) = 0.0000000000017702;
-                        else
-                            if(i == 1600)
-                                this->KKT_rhs(i,0) = 0.0000000000010888;
-                            else
-                                if(i == 1601)
-                                    this->KKT_rhs(i,0) = 0.0000000000016224;
-                                else
-                                    if(i == 1602)
-                                        this->KKT_rhs(i,0) = -0.00000000000066687;
-                                    else
-                                        if(i == 1603)
-                                            this->KKT_rhs(i,0) = -0.0000000000013383;
-                                        else
-                                            if(i == 1604)
-                                                this->KKT_rhs(i,0) = -0.00000000000014358;
-                                            else
-                                                if(i == 1605)
-                                                    this->KKT_rhs(i,0) = -0.0000000000014139;
-                                                else
-                                                    if(i == 1606)
-                                                        this->KKT_rhs(i,0) = 0.0000000000008395;
-                                                    else
-                                                        if(i == 1607)
-                                                            this->KKT_rhs(i,0) = -0.00000000000022301;*/
-                
-                
-                
-                
-                
-                
-
-
+            this->KKT_rhs(i,0) = -this->y_fgrad(i,0); 
             
         }
+
+        export_mat_to_excel(this->KKT_rhs, "ValidarDatos/c_KKT_rhs"+to_string(i));
 
         /*Prueba matrix por descompistion LU and solve
         MatrixXd smatrix(3,3);
@@ -321,7 +303,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
     //    print_dimensions("->", this->KKT.U);
         //print_dimensions("KKT_rhs", this->KKT_rhs);
 
-        export_mat_to_excel(this->KKT_rhs, "KKT_rhs");
+        //export_mat_to_excel(this->KKT_rhs, "KKT_rhs");
 
         /*VectorXd b = (LU.rowsPermutation().transpose())*this->KKT_rhs;
         export_mat_to_excel(b, "b_perR");
@@ -336,14 +318,14 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 //        VectorXd prueba_lambda = this->KKT_Class.solve(this->KKT_rhs);
         this->p_lambda = this->KKT_Class.solve(this->KKT_rhs);
         //export_mat_to_excel(prueba_lambda, "prueba_lambda");
-        
+        export_mat_to_excel(this->p_lambda, "ValidarDatos/c_p_lambda"+to_string(i));
 
         for(int i=0; i<this->optimProblem.n_vars; i++)
         {
             this->p(i,0) = this->p_lambda(i,0);
         }
 
-        export_mat_to_excel(this->p, "ValidarDatos/pc"+to_string(i+1));
+        export_mat_to_excel(this->p, "ValidarDatos/c_p"+to_string(i+1));
 
         //Initialize step size
         cout << "t1: " << this->t << endl;
@@ -363,8 +345,8 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 
         if(this->useLineSearchStepSizeLimit)
         {
-            export_sparsemat_to_excel(this->y.sparseView(), "1y");
-            export_mat_to_excel(this->p, "1p");
+            //export_sparsemat_to_excel(this->y.sparseView(), "1y");
+            //export_mat_to_excel(this->p, "1p");
             MatrixXd tempY = this->y;
             MatrixXd tempP = this->p;
             matrix_reshape(tempY, tempY.rows()/this->optimProblem.dim, this->optimProblem.dim);
@@ -388,7 +370,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             double linesearch_cond_lhs, linesearch_cond_rhs;
             computeLineSearchCond(linesearch_cond_lhs, linesearch_cond_rhs);
 
-            cout << "---------->"<<linesearch_cond_lhs << " - " << linesearch_cond_rhs << endl;
+            cout << "---------->"<<linesearch_cond_lhs/100000 << " - " << linesearch_cond_rhs/100000 << endl;
 
             while(linesearch_cond_lhs > linesearch_cond_rhs)
             {
