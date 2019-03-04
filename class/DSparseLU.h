@@ -37,6 +37,8 @@ DSparseLU::DSparseLU(MatrixXd smatrix, bool s)
 	this->P = MatrixXd::Identity(smatrix.rows(), smatrix.cols());
 	this->Q = MatrixXd::Identity(smatrix.rows(), smatrix.cols());
 
+	this->L = MatrixXd::Identity(smatrix.rows(), smatrix.cols());
+
 	/*for(int i=smatrix.rows()-1; i>=0; i--)
 	{
 		int contador = 1;
@@ -168,22 +170,53 @@ DSparseLU::DSparseLU(MatrixXd smatrix, bool s)
 		tempQ = this->Q.col(k);
 		this->Q.col(k) = this->Q.col(select_col);
 		this->Q.col(select_col) = tempQ;
+
+		//Permutar values in L//Falta verificar
+		for(int j=0; j<this->U.cols(); j++)
+		{
+			if(k > j)
+			{
+				double tempL = this->L(k,j);
+				this->L(k,j) = this->L(select_row, j);
+				this->L(select_row, j) = tempL;
+			}
+		}
+
+		/*Eliminacion de Gaussiana*/
+		for(int i=k+1; i<this->U.rows(); i++)
+		{
+			if(this->U(i,k) != 0)
+			{
+				double first_element = this->U(i,k);
+				this->U.row(i) = this->U.row(i)-(first_element/this->U(k,k))*this->U.row(k);
+
+				this->L(i,k) = (first_element/this->U(k,k));
+			}
+		}
 	}
 
+	export_mat_to_excel(this->U, "ValidarDatos/U_prueba_in");
 
-	cout << "Matrix U" << endl;
+
+	/*cout << "Matrix U" << endl;
 	cout << this->U << endl;
 
-	cout << "Matrix P" << endl;
+	cout << "Matrix L" << endl;
+	cout << this->L << endl;
+
+	cout << "Init Matrix" << endl;
+	cout << this->P.transpose()*this->L*this->U*this->Q.transpose();*/
+
+	/*cout << "Matrix P" << endl;
 	cout << this->P << endl;
 
 	cout << "Matrix Q" << endl;
 	cout << this->Q << endl;
 
-	/*cout << permutationP << endl;
-	cout << permutationQ << endl;*/
+	cout << permutationP << endl;
+	cout << permutationQ << endl;
 
-	cout << "imprimir " << endl;
+	cout << "imprimir " << endl;*/
 }
 /*LU implementation of Eigen
 //Toma 8 veces mas tiempo que la implementacion propia
@@ -342,15 +375,15 @@ VectorXd DSparseLU::solve(VectorXd LHS)
 
 	return xU;*/
 
-	print_dimensions( "LLLLLLLLLLLLLLLLL: ", this->L);
-	print_dimensions( "UUUUUUUUUUUUUUUUU: ", this->U);
+	print_dimensions( "PPP: ", this->P);
+	print_dimensions( "QQQ: ", this->Q);
 
-	return solve_Ux(this->U,solve_Lx(this->L, (this->P.transpose()*LHS)));
+	return this->Q.transpose()*(solve_Ux(this->U,solve_Lx(this->L, (this->P.transpose()*LHS))));
 }
 
 VectorXd DSparseLU::solve_Lx(MatrixXd L, VectorXd X)
 {
-	export_mat_to_excel(L, "ValidarDatos/LLL_in");
+	//export_mat_to_excel(L, "ValidarDatos/LLL_in");
 	for(int k=0; k<L.rows(); k++)
 	{
 		//cout << smatrix << endl;
@@ -372,7 +405,7 @@ VectorXd DSparseLU::solve_Lx(MatrixXd L, VectorXd X)
 		}
 	}
 
-	export_mat_to_excel(L, "ValidarDatos/LLL_out");
+	//export_mat_to_excel(L, "ValidarDatos/LLL_out");
 	//cout << "L: " <<L << endl;
 	//cout << "X: " << X << endl;
 	return X;
@@ -380,7 +413,7 @@ VectorXd DSparseLU::solve_Lx(MatrixXd L, VectorXd X)
 
 VectorXd DSparseLU::solve_Ux(MatrixXd U, VectorXd X)
 {
-	export_mat_to_excel(U, "ValidarDatos/UUU_in");
+	//export_mat_to_excel(U, "ValidarDatos/UUU_in");
 	for(int k=U.rows()-1; k>=0; k--)
 	{
 		//cout << smatrix << endl;
@@ -410,7 +443,7 @@ VectorXd DSparseLU::solve_Ux(MatrixXd U, VectorXd X)
 		X(i,0) /= div;
 	}
 
-	export_mat_to_excel(U, "ValidarDatos/UUU_out");
+	//export_mat_to_excel(U, "ValidarDatos/UUU_out");
 	//cout << "U: " <<U << endl;
 	//cout << "X: " << X << endl;
 	return X;
