@@ -378,7 +378,8 @@ VectorXd DSparseLU::solve(VectorXd LHS)
 	print_dimensions( "PPP: ", this->P);
 	print_dimensions( "QQQ: ", this->Q);
 
-	return this->Q.transpose()*(solve_Ux(this->U,solve_Lx(this->L, (this->P.transpose()*LHS))));
+	//return this->Q.transpose()*(solve_Ux(this->U,solve_Lx(this->L, (this->P.transpose()*LHS))));
+	return (solve_Ux(this->U,solve_Lx(this->L, (this->P*LHS))));
 }
 
 VectorXd DSparseLU::solve_Lx(MatrixXd L, VectorXd X)

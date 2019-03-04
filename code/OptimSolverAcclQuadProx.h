@@ -162,7 +162,8 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     m(3,1) = 4;
     m(3,2) = 4;
     //this->KKT_Class = DSparseLU(m, true);
-    this->KKT_Class = DSparseLU(matrix, true);
+    //this->KKT_Class = DSparseLU(matrix, true);
+    this->KKT_Class = DSparseLU(matrix);
     //export_mat_to_excel(this->KKT_Class.P.transpose()*this->KKT_Class.L*this->KKT_Class.U, "c_LU");
     //this->KKT = DSparseLU(matrix);
     //this->KKT = Splu(KKT_mat);
