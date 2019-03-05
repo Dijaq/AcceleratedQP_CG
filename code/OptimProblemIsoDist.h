@@ -132,7 +132,11 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
             this->Tx = this->T*this->x0;
             //export_mat_to_excel(this->Tx, "Tx"+to_string(arapIter)); 
             this->R = this->Tx;
-            projBlockRotation2x2(this->R, this->dim);
+
+            if(this->dim == 2)
+                projBlockRotation2x2(this->R, this->dim);
+            else
+                projBlockRotation3x3(this->R, this->dim);
             //this->x0 = solveConstrainedLS(this->T, this->R, this->eq_lhs, this->eq_rhs);
 
             /*if(arapIter == 0)
@@ -158,7 +162,10 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
     this->Tx = this->T*colStack(this->x0);
 
     double val;
-    helperFunctionalIsoDist2x2(this->Tx, this->areas, this->dim, val, this->flips);
+    if(this->dim == 2)
+        helperFunctionalIsoDist2x2(this->Tx, this->areas, this->dim, val, this->flips);
+    else
+        helperFunctionalIsoDist3x3(this->Tx, this->areas, this->dim, val, this->flips);
     //Fix if there are flips
     if(this->flips)
     {
@@ -223,7 +230,10 @@ double OptimProblemIsoDist::getMaxStep(MatrixXd x, MatrixXd p)
 
     double t_max;
     //cout <<"x: " <<x.cols()<<endl;
-    computeInjectiveStepSize_2d(this->F, x, p, this->maxStepTol, t_max);
+    if(this->dim == 2)
+        computeInjectiveStepSize_2d(this->F, x, p, this->maxStepTol, t_max);
+    else
+        computeInjectiveStepSize_3d(this->F, x, p, this->maxStepTol, t_max);
     return t_max;
 }
 
@@ -248,14 +258,17 @@ void OptimProblemIsoDist::evaluateFunctional(MatrixXd x, bool doVal, bool doGrad
     //print_dimensions("T: ", this->T);
     //print_dimensions("x: ", x);
     this->Tx = this->T*x;
-    export_mat_to_excel(this->Tx, "Tx_funn");
-    export_mat_to_excel(x, "x_funn");// regular
+    //export_mat_to_excel(this->Tx, "Tx_funn");
+    //export_mat_to_excel(x, "x_funn");// regular
     this->Tx_grad = this->Tx;
     //export_mat_to_excel(Tx_grad, "Tx");//Este esta medio raro
     if(doVal || doGrad)
     {
         //cout << "Inpute do Val" << endl;
-        helperFunctionalIsoDist2x2(this->Tx_grad, this->areas, this->dim, this->f_val, this->flips);
+        if(this->dim == 2)
+            helperFunctionalIsoDist2x2(this->Tx_grad, this->areas, this->dim, this->f_val, this->flips);
+        else
+            helperFunctionalIsoDist3x3(this->Tx_grad, this->areas, this->dim, this->f_val, this->flips);
 
         if(this->flips)
         {
@@ -270,7 +283,7 @@ void OptimProblemIsoDist::evaluateFunctional(MatrixXd x, bool doVal, bool doGrad
 
     if(doGrad)
     {
-        export_mat_to_excel(this->Tx_grad, "Tx_gradd");
+        //export_mat_to_excel(this->Tx_grad, "Tx_gradd");
         //print_dimensions("Tx->", this->Tx_grad);
         //print_dimensions("T->", this->T);
         f_grad = (this->Tx_grad.transpose()*this->T).transpose();
