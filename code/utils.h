@@ -42,6 +42,31 @@ void loadMatrix(std::istream& inStream, MatrixXd &matrix)
     }
 }
 
+void loadMatrixXi(std::istream& inStream, MatrixXi &matrix)
+{
+    string         line;
+    stringstream   lineStream;
+    string         value;
+
+    int wrows = 0;
+    int wcols = 0;
+    while(getline(inStream, line) )
+    {
+        lineStream.clear();
+        lineStream.str(line);
+        //read cells
+        //cout << "row=" << wrows << " lineStream.str() = " << lineStream.str() << std::endl;
+        while(getline(lineStream, value, ','))
+        {
+            matrix(wrows, wcols) = stof(value);
+            wcols++;
+            //cout << "cell=" << value << std::endl;
+        }
+        wrows++;
+        wcols = 0;
+    }
+}
+
 void load_SparseMatrix(std::istream& inStream, SparseMatrix<double> &matrix)
 {
     string         line;
@@ -193,6 +218,67 @@ void read_mesh_2D(string PATH_V, string PATH_F, string PATH_eq_lhs, string PATH_
 
 }
 
+void read_mesh_3D(string PATH_V, string PATH_F, string PATH_Vt, string PATH_Ft, Param_State &mesh)
+{
+    //read faces
+    ifstream infile_F(PATH_F);
+    int rows = 0;
+    int cols = 0;
+    countRowsColsCsv(infile_F, rows, cols);
+    infile_F.close();
+
+    ifstream infile_F_read(PATH_F);
+    MatrixXd F(rows, cols);
+    loadMatrix(infile_F_read, F);
+    infile_F_read.close();
+
+//read vertices
+    ifstream infile_V(PATH_V);
+    rows = 0;
+    cols = 0;
+    countRowsColsCsv(infile_V, rows, cols);
+    infile_V.close();
+
+    ifstream infile_V_read(PATH_V);
+    MatrixXd V(rows, cols);
+    loadMatrix(infile_V_read, V);
+    infile_V_read.close();
+
+//read eq_lhs
+
+    ifstream infile_eq_lhs(PATH_Vt);
+    rows = 0;
+    cols = 0;
+    countRowsColsCsv(infile_eq_lhs, rows, cols);
+    infile_eq_lhs.close();
+
+    ifstream infile_eq_lhs_read(PATH_Vt);
+    MatrixXd Vt(rows, cols);
+    loadMatrix(infile_eq_lhs_read, Vt);
+    //SparseMatrix<double> Vt(rows, cols);
+    //load_SparseMatrix(infile_eq_lhs_read, Vt);
+    infile_eq_lhs_read.close();
+
+//read eq_rhs
+
+    ifstream infile_eq_rhs(PATH_Ft);
+    rows = 0;
+    cols = 0;
+    countRowsColsCsv(infile_eq_rhs, rows, cols);
+    infile_eq_rhs.close();
+
+    ifstream infile_eq_rhs_read(PATH_Ft);
+    MatrixXd Ft(rows, cols);
+    loadMatrix(infile_eq_rhs_read, Ft);
+    infile_eq_rhs_read.close();
+
+    mesh.F = F;
+    mesh.V = V;
+    mesh.Vt = Vt;
+    mesh.Ft = Ft;
+
+}
+
 void MatrixXd_to_Mat(MatrixXd matrix, Mat dst)
 {
     for(int i=0; i<matrix.rows(); i++)
@@ -221,6 +307,7 @@ void create_column_zeros(MatrixXd V, MatrixXd &new_V)
 
 //This is because the relation between F with V is since the number 1 to the final of the list
 //But in MatrixXd "V" is saved since the coordinate 0
+//void update_F(MatrixXd &F)
 void update_F(MatrixXd &F)
 {
     //cout << "Filas: " << F.rows() << " columnas: " << F.cols() << endl;
