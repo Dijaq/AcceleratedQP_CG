@@ -102,7 +102,7 @@ int main()
     }
 
     print_dimensions("x", optimProblemAQP.x);
-    export_mat_to_excel(optimProblemAQP.x, "xFinal"); 
+    //export_mat_to_excel(optimProblemAQP.x, "xFinal"); 
 
     cout << "Finish Program" << endl;
     /*cout << "Start Practice Section" << endl;

@@ -1,1 +1,0 @@
-# AcceleratedQP_CG

@@ -29,6 +29,7 @@ public:
 
 DSparseLU::DSparseLU(){}
 
+/*this constructor is not used*/
 
 DSparseLU::DSparseLU(MatrixXd smatrix, bool s)
 {
@@ -195,7 +196,7 @@ DSparseLU::DSparseLU(MatrixXd smatrix, bool s)
 		}
 	}
 
-	export_mat_to_excel(this->U, "ValidarDatos/U_prueba_in");
+	//export_mat_to_excel(this->U, "ValidarDatos/U_prueba_in");
 
 
 	/*cout << "Matrix U" << endl;
@@ -323,8 +324,8 @@ DSparseLU::DSparseLU(MatrixXd smatrix)
 		}
 	}
 
-	export_mat_to_excel(this->L, "ValidarDatos/LL_in");
-	export_mat_to_excel(this->U, "ValidarDatos/UU_in");	
+	//export_mat_to_excel(this->L, "ValidarDatos/LL_in");
+	//export_mat_to_excel(this->U, "ValidarDatos/UU_in");	
 
 	this->sL = this->L.sparseView();
 	this->sU = this->U.sparseView();	
@@ -334,7 +335,7 @@ DSparseLU::DSparseLU(MatrixXd smatrix)
 
 DSparseLU::DSparseLU(SparseMatrix<double> A)
 {
-	cout << "------:::::::>>>>>" << A.nonZeros();
+	//cout << "------:::::::>>>>>" << A.nonZeros();
 }
 
 
