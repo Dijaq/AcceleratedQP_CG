@@ -1,6 +1,8 @@
 #include <iostream>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Sparse>
+#include <eigen3/Eigen/SparseLU>
+#include <eigen3/Eigen/IterativeLinearSolvers>
 #include "code/mathelpers.h"
 #include "class/Param_State.h"
 #include "code/utils.h"
@@ -20,8 +22,29 @@ void exportOptimProblem(OptimProblemIsoDist optimProblem);
 
 int main()
 {
+    /*cout << "seccion de pruebas" << endl;
+    SparseMatrix<double> mat(3,3);
+    mat.insert(0,0) = 2;
+    mat.insert(0,2) = 4;
+    mat.insert(1,1) = -3;
+    mat.insert(2,0) = 2;
+    mat.insert(2,1) = -1;
+
+    VectorXd b(3);
+    b(0,0) = 2;
+    b(1,0) = -1;
+    b(2,0) = 1;
+    SparseLU<SparseMatrix<double> > solver;
+    solver.analyzePattern(mat);   // for this step the numerical values of A are not used
+    solver.factorize(mat);
+    VectorXd x1 = solver.solve(b);
+    cout << "x1: " << x1 << endl;
+
+    cout << "End seccion pruebas" << endl;*/
+
+
 	//Example of gecko deformation
-	int num_iter = 30;
+	int num_iter =50;
 	double TolX = 1e-10;
 	double TolFun = 1e-6;
 

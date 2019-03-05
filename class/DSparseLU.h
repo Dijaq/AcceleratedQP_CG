@@ -357,14 +357,14 @@ VectorXd DSparseLU::solve(VectorXd LHS)
 
 VectorXd DSparseLU::solve(VectorXd LHS)
 {
-	/*VectorXd bL = (this->P.transpose()*LHS);
+	VectorXd bL = (this->P*LHS);
 
-	auto t11 = std::chrono::high_resolution_clock::now();
+	//auto t11 = std::chrono::high_resolution_clock::now();
 	SparseLU<SparseMatrix<double>> solverL;
 	solverL.analyzePattern(this->sL);
 	solverL.factorize(this->sL);
-    auto t12 = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
+    //auto t12 = std::chrono::high_resolution_clock::now();
+    //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
     //cout << "L to solve: " << duration << endl;
 	VectorXd xL = solverL.solve(bL);
 
@@ -373,13 +373,13 @@ VectorXd DSparseLU::solve(VectorXd LHS)
 	solverU.factorize(this->sU);
 	VectorXd xU = solverU.solve(xL);
 
-	return xU;*/
+	return xU;
 
-	print_dimensions( "PPP: ", this->P);
-	print_dimensions( "QQQ: ", this->Q);
+	//print_dimensions( "PPP: ", this->P);
+	//print_dimensions( "QQQ: ", this->Q);
 
 	//return this->Q.transpose()*(solve_Ux(this->U,solve_Lx(this->L, (this->P.transpose()*LHS))));
-	return (solve_Ux(this->U,solve_Lx(this->L, (this->P*LHS))));
+	//return (solve_Ux(this->U,solve_Lx(this->L, (this->P*LHS))));
 }
 
 VectorXd DSparseLU::solve_Lx(MatrixXd L, VectorXd X)
