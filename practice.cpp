@@ -9,6 +9,7 @@
 #include "code/utils.h"
 #include <glm/glm.hpp>
 #include <GL/glew.h>
+#include <GL/freeglut.h>
 #include <GL/glut.h>
 #include <GL/gl.h>
 //#include "libs/viewer/Viewer.h"
@@ -17,7 +18,21 @@
 using namespace std;
 using namespace Eigen;
 
-int main()
+GLuint VBO;
+
+static void RenderSceneCB()
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+    glutSwapBuffers();
+}
+
+static void InitializeGlutCallbacks()
+{
+    glutDisplayFunc(RenderSceneCB);
+    //glutIdleFunc(RenderSceneCB);
+}
+
+int main(int argc, char** argv)
 {
 
 	Param_State mesh;
@@ -41,6 +56,7 @@ int main()
 		vertex.x = V3(i,0);
 		vertex.y = V3(i,1);
 		vertex.z = V3(i,2);
+    	
 
 		temp_vertices.push_back(vertex);
     }
@@ -63,7 +79,28 @@ int main()
     }
 
     cout << "gl buffer data"	 << endl;
+
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA);
+    glutInitWindowSize(1024, 768);
+    glutInitWindowPosition(100, 100);
+    glutCreateWindow("Gecko");
+
+    InitializeGlutCallbacks();
+    // Must be done after glut is initialized!
+    GLenum res = glewInit();
+    if (res != GLEW_OK) {
+      fprintf(stderr, "Error: '%s'\n", glewGetErrorString(res));
+      return 1;
+    }
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+
+    glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+
+    glutMainLoop();
 
     return 0;
 }
