@@ -98,20 +98,26 @@ OptimProblemIsoDist::OptimProblemIsoDist(Param_State mesh, MatrixXd V0, int init
     this->initArapIter = initArapIter;
 
     //Compute transformations
+    cout << "first step" << endl;
     computeMeshTranformationCoeffsFullDim(this->F, this->V, this->T, this->areas);//Finished
     //set initial configuration
+    cout << "second step" << endl;
     initVertices(V0);//Falta
     //set quadratic proxy
+    cout << "third step" << endl;
     setQuadraticProxy();//Finished
     //Finish construction
+    cout << "four step" << endl;
     initProblem();//Finished
 }
 
 void OptimProblemIsoDist::initVertices(MatrixXd v0)
 { 
+    print_dimensions("V0: ", v0);
     //MatrixXd x0;
-    if(!MatrixXd_isempty(v0))
+    if((v0.rows() != 0) || (v0.cols() != 0))
     {
+        cout << "no es empty" << endl;
         this->x0 = v0;
     }
     else
@@ -155,6 +161,8 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
         //cout << "size: "<<this->x0.rows() << "-"<<this->x0.cols() << endl;
     }
 
+    print_dimensions("xx0: ", this->x0);
+
 /*    cout << this->T.rows() << "-" << this->T.cols() << endl;
     cout << x0.rows() << "-" << x0.cols() << endl;*/
 
@@ -195,10 +203,10 @@ MatrixXd OptimProblemIsoDist::sparseMul(SparseMatrix<double> A, MatrixXd B)
         for(SparseMatrix<double>::InnerIterator it(A, i); it; ++it)
         {
             sparseMul(it.row(),0) += it.value()*B(it.col(),0); 
-            if(it.row() == 1)
+            /*if(it.row() == 1)
             {
                 cout << "-->"<< "("<< it.row()<<","<< it.col()<<")"<< it.value() << " : " << B(it.col(),0) <<" = "<< it.value()*B(it.col(),0) << endl;//sparseMul(it.row(),0)
-            }
+            }*/
             //sparseMul.insert(it.row(), it.col()) = it.value();
         }
     }
