@@ -12,6 +12,7 @@
 #include <GL/freeglut.h>
 #include <GL/glut.h>
 #include <GL/gl.h>
+//#include <igl/viewer/Viewer.h>
 //#include "libs/viewer/Viewer.h"
 //#include "class/smesh.h"
 
