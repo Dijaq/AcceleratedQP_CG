@@ -7,113 +7,63 @@
 #include <string>
 #include "code/mathelpers.h"
 #include "code/utils.h"
+#include <glm/glm.hpp>
+#include <GL/glew.h>
+#include <GL/glut.h>
+#include <GL/gl.h>
+//#include "libs/viewer/Viewer.h"
+//#include "class/smesh.h"
 
 using namespace std;
 using namespace Eigen;
 
-class CSVMatrix
-{
-    public:
-        void loadMatrix(std::istream& inStream)
-        {
-            string         line;
-            stringstream   lineStream;
-            string         cell;
-
-            int row=0;
-
-            //read lines
-            while(getline(inStream, line) )
-            {
-                lineStream.clear();
-                lineStream.str(line);
-                cout << "row=" << row++
-                    << " lineStream.str() = " << lineStream.str() << std::endl;
-
-                //read cells
-                while(getline(lineStream, cell, ','))
-                {
-                    cout << "cell=" << cell << std::endl;
-                }
-            }
-        }
-};
-
 int main()
 {
-	string PATH_F = "data_gecko/F.csv";
-    ifstream infile_count(PATH_F);
-    int rows = 0;
-    int cols = 0;
-    countRowsColsCsv(infile_count, rows, cols);
 
-    ifstream infile_read(PATH_F);
-    MatrixXd F(rows, cols);
-    loadMatrix(infile_read, F);
+	Param_State mesh;
 
-    
-    //CSVMatrix matrix;
+	read_mesh_2D("data_gecko/V.csv", "data_gecko/F.csv","data_gecko/eq_lhs.csv", "data_gecko/eq_rhs.csv", mesh);
+    update_F(mesh.F);
+    MatrixXd V3(mesh.V.rows(), mesh.V.cols()+1);
+    create_column_zeros(mesh.V, V3);
 
-    //matrix.loadMatrix(infile);
-    //MatrixXd F = loadMatrix(infile);
+    print_dimensions("V3: ", V3);
 
-    //cout << F.rows() << "-" << F.cols() << endl;
+	vector<unsigned int> vertexIndices, uvIndices, normalIndice;
+	vector<glm::vec3> temp_vertices;
+	vector<glm::vec2> temp_uvs;
+	vector<glm::vec3> temp_normasl;
 
-    for(int i=0; i<F.rows(); i++)
+	//Load vertex
+    for(int i=0; i<V3.rows(); i++)
     {
-    	for(int j=0; j<F.cols(); j++)
-    	{
-    		cout << F(i,j) << "-";
-    	}
-    	cout << endl;
+		glm::vec3 vertex;
+		vertex.x = V3(i,0);
+		vertex.y = V3(i,1);
+		vertex.z = V3(i,2);
+
+		temp_vertices.push_back(vertex);
     }
+
+    //Load faces
+    for(int i=0; i<mesh.F.rows(); i++)
+    {
+    	for(int j=0; j<mesh.F.cols(); j++)
+    	{
+    		vertexIndices.push_back(mesh.F(i,j));
+    	}
+    }
+
+    vector<glm::vec3> vertices;
+    for(int i=0; i<vertexIndices.size(); i++)
+    {
+    	int vertexIndex = vertexIndices[i];
+    	glm::vec3 vertex = temp_vertices[vertexIndex];
+    	vertices.push_back(vertex);
+    }
+
+    cout << "gl buffer data"	 << endl;
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
 
     return 0;
 }
-
-/*int main()
-{
-	fstream fin;
-	fin.open("data_gecko.V", ios::in);
-	int rollnum, rool2, count=0;
-	cout << "Enter";
-	cin >> rollnum;
-
-	vector<string> row;
-	string word;
-	string line, temp;
-
-	while(fin >> temp)
-	{
-		row.clear();
-		getline(fin, line);
-		stringstream s(line);
-
-		while(s.getline(s, word, ', '))
-		{
-			row.push_back(word);
-		}
-	}
-
-	cout << "size: " << row.size() << endl;
-
-	return 0;
-}*/
-
-/*int main()
-{
-	MatrixXd m(2,3);
-	m(0,0) = 1;
-	m(0,1) = 3;
-	m(0,2) = 3.5;
-	m(1,0) = 2;
-	m(1,1) = 4;
-	m(1,2) = 4.5;
-
-	cout << m << endl;
-	MatrixXd ms = colStack(m);
-	cout << "colStack" << endl;
-	cout << ms << endl;
-
-	return 0;
-}*/
