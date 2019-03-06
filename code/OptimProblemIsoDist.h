@@ -83,7 +83,10 @@ OptimProblemIsoDist::~OptimProblemIsoDist()
 
 OptimProblemIsoDist::OptimProblemIsoDist(Param_State mesh, MatrixXd V0, int initArapIter)
 {
-    this->V = mesh.V;
+    if(mesh.V.cols() == 2)
+        this->V = mesh.V;
+    else
+        this->V = V0;
     this->F = mesh.F;
     this->eq_lhs = mesh.eq_lhs;
     this->eq_rhs = mesh.eq_rhs;
@@ -161,13 +164,15 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
         //cout << "size: "<<this->x0.rows() << "-"<<this->x0.cols() << endl;
     }
 
-    print_dimensions("xx0: ", this->x0);
+    print_dimensions("T: ", this->T);
 
 /*    cout << this->T.rows() << "-" << this->T.cols() << endl;
     cout << x0.rows() << "-" << x0.cols() << endl;*/
 
     //cout << "->"<<(this->T).rows() <<" - " <<(this->T).cols()<<endl;
     this->Tx = this->T*colStack(this->x0);
+
+    cout << "dim: " << this->dim << endl;
 
     double val;
     if(this->dim == 2)
