@@ -46,6 +46,19 @@ int main()
 
     cout << "Init OptimAccelQuad prox" << endl; 
     OptimSolverAcclQuadProx optimProblemAQP("AQP", optimProblem, true, true, true);
+    optimProblemAQP.setKappa(1000);
+
+    vector<OptimSolverAcclQuadProx> listOptimSolverAccQuadProx;
+    listOptimSolverAccQuadProx.push_back(optimProblemAQP);
+
+
+    int n_solvers = listOptimSolverAccQuadProx.size();
+
+    cout << "Start Iterations: " << endl;
+    for(int i=0; i<n_solvers; i++)
+    {
+        listOptimSolverAccQuadProx[i].solveTol(TolX, TolFun, num_iter);  
+    }
 
     cout << "Finish Program" << endl;
 
@@ -96,6 +109,8 @@ int main()
     create_column_zeros(exportVAQP, nAQPV);*/
 
     //igl::writeOBJ("cow.obj", mesh.V, mesh.F);
+
+    //Create init parameterization
     MatrixXi Fi(mesh.F.rows(), mesh.F.cols());
     for(int i=0; i<mesh.F.rows(); i++)
     {
@@ -106,7 +121,14 @@ int main()
     }
     igl::writeOBJ("cow_param.obj", mesh.V, Fi, Eigen::MatrixXd(), Eigen::MatrixXi(), mesh.Vt, Fi);
     //igl::writeOBJ("cow_param.obj", mesh.V, mesh.F, Eigen::MatrixXd(), Eigen::MatrixXi(), mesh.Vt, mesh.F);
-  
+
+    //Create final parameterization
+    print_dimensions("xx: ", listOptimSolverAccQuadProx[0].x);
+    MatrixXd VerticeTexture = listOptimSolverAccQuadProx[0].x;
+    matrix_reshape(VerticeTexture, VerticeTexture.rows()/2, 2);
+
+    igl::writeOBJ("cow_param_final.obj", mesh.V, Fi, Eigen::MatrixXd(), Eigen::MatrixXi(), VerticeTexture, Fi);
+
 	return 0;
 }
 
