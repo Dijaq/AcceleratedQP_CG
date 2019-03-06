@@ -41,8 +41,13 @@ int main()
     cout << mesh.eq_lhs.cols() << endl;
     cout << MatrixXd::Identity(2,2) << endl;
 
+    cout << "Init Optim Problem" << endl;
     OptimProblemIsoDist optimProblem(mesh, mesh.Vt, 1); 
-    
+
+    cout << "Init OptimAccelQuad prox" << endl; 
+    OptimSolverAcclQuadProx optimProblemAQP("AQP", optimProblem, true, true, true);
+
+    cout << "Finish Program" << endl;
 
     /*print_dimensions("V: ", mesh.V);
     //print_dimensions("F: ", mesh.F);
