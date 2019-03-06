@@ -11,6 +11,7 @@ public:
 	Eigen::MatrixXd F;
 	Eigen::MatrixXd Vt;
 	Eigen::MatrixXd Ft;
+	Eigen::MatrixXd inds_bF;
 	Eigen::SparseMatrix<double> eq_lhs;//This is a sparse matrix
 	Eigen::MatrixXd eq_rhs;
 

@@ -326,4 +326,32 @@ VectorXd solveConstrainedLS(SparseMatrix<double> T,MatrixXd R, SparseMatrix<doub
 	//Solve Matrix
 }
 
+
+SparseMatrix<double> kron_sparse(SparseMatrix<double> eye, SparseMatrix<double> second)
+{
+	SparseMatrix<double> sparse(eye.rows()*second.rows(), eye.cols()*second.cols());
+
+//	cout << "sparse: " << sparse.rows() << " - " << sparse.cols() << endl;
+
+	for(int i=0; i<eye.rows(); i++)
+	{
+		for(int j=0; j<eye.cols(); j++)
+		{
+			for(int h=0; h<second.rows(); h++)
+			{
+				for(int k=0; k<second.cols(); k++)
+				{
+					if(eye.coeffRef(i,j) != 0)
+						sparse.insert(h+second.rows()*i,k+second.cols()*j) = second.coeffRef(h,k);
+				}
+			}
+		}
+
+	}
+
+	return sparse;
+
+
+}
+
 #endif // MATHELPERS

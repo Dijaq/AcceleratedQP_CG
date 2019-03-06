@@ -32,10 +32,22 @@ int main()
     read_mesh_3D("data_cow/V.csv", "data_cow/F.csv","data_cow/Vt.csv", "data_cow/Ft.csv", mesh);
     update_F(mesh.F);
 
-    print_dimensions("V: ", mesh.V);
+
+//    SparseMatrix<double>  eq_lhs = kron_sparse(MatrixXd::Identity(2,2).sparseView(), sparse_to_parameterization(mesh.inds_bF, mesh.V.rows()));
+    mesh.eq_lhs = kron_sparse(MatrixXd::Identity(2,2).sparseView(), sparse_to_parameterization(mesh.inds_bF, mesh.V.rows()));
+    mesh.eq_rhs = MatrixXd::Zero(2,1);
+
+    cout << mesh.eq_lhs.rows() << endl;
+    cout << mesh.eq_lhs.cols() << endl;
+    cout << MatrixXd::Identity(2,2) << endl;
+
+    OptimProblemIsoDist optimProblem(mesh, mesh.Vt, 1); 
+    
+
+    /*print_dimensions("V: ", mesh.V);
     //print_dimensions("F: ", mesh.F);
     print_dimensions("Vt: ", mesh.Vt);
-    print_dimensions("Ft: ", mesh.Ft);
+    print_dimensions("Ft: ", mesh.Ft);*/
     /*cout << mesh.F.rows() << " - " << mesh.F.cols() << endl;
     cout << mesh.V.rows() << " - " << mesh.V.cols() << endl;*/
 

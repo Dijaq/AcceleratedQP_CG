@@ -275,7 +275,7 @@ void read_mesh_3D(string PATH_V, string PATH_F, string PATH_Vt, string PATH_Ft, 
     mesh.F = F;
     mesh.V = V;
     mesh.Vt = Vt;
-    mesh.Ft = Ft;
+    mesh.inds_bF = Ft;
 
 }
 
@@ -340,6 +340,17 @@ void matrix_reshape(MatrixXd &matrix, int rows, int cols)
 void print_dimensions(string etiqueta, MatrixXd x)
 {
     cout << etiqueta <<" rows: " << x.rows() << ", cols: " << x.cols() << endl;
+}
+
+SparseMatrix<double> sparse_to_parameterization(MatrixXd inds_bF, int V_rows)
+{
+    SparseMatrix<double> sparse(1, V_rows);
+    for(int i=0; i<inds_bF.rows(); i++)
+    {
+        sparse.insert(0, inds_bF(i,0)-1) = 1;
+    }
+
+    return sparse;
 }
 
 #endif
