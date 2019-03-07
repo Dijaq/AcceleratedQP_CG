@@ -52,6 +52,39 @@ __global__ void cuda_solve_Lx(float *L, float *B, int filas, int columnas, int s
 	int col = blockIdx.x*blockDim.x+threadIdx.x;
 	int fil = blockIdx.y*blockDim.y+threadIdx.y;
 
+	for(int selected=0; selected<filas-1; selected++)
+    {
+    	selected_row = selected;
+    	selected_col = selected;
+    	if((col < columnas && fil < filas) && (fil > selected_row && col > (selected_col-1)))
+		{
+			//Index for Matrix L
+			int index_selected_row = (columnas*selected_row)+col;
+			int index_selected_col = (columnas*fil)+selected_col;
+			int index_kk = (columnas*selected_row)+selected_col;
+			int index = (columnas*fil)+col;
+
+			//Index for Matrix B
+			if(fil > selected_row && col == selected_col)
+			{
+				
+				int indexB = fil;
+				B[indexB] =B [indexB]-B[col]*L[index_selected_col]/L[index_kk];
+			}
+
+			L[index] = L[index]-L[index_selected_row]*L[index_selected_col]/L[index_kk];
+		}
+    }
+
+	
+
+}
+
+/*__global__ void cuda_solve_Lx(float *L, float *B, int filas, int columnas, int selected_row, int selected_col)
+{
+	int col = blockIdx.x*blockDim.x+threadIdx.x;
+	int fil = blockIdx.y*blockDim.y+threadIdx.y;
+
 	if((col < columnas && fil < filas) && (fil > selected_row && col > (selected_col-1)))
 	{
 		//Index for Matrix L
@@ -63,24 +96,50 @@ __global__ void cuda_solve_Lx(float *L, float *B, int filas, int columnas, int s
 		//Index for Matrix B
 		if(fil > selected_row && col == selected_col)
 		{
-			//int indexB = (columnas*(fil-1))+col;
+			
 			int indexB = fil;
-			//int index_selected_row_B = (columnas*fil)+selected_col;
-			//int selected_first = (columnas*col)+(fil-1);
-			//B[indexB] = B[indexB]-B[0]*L[index_selected_col]/L[index_kk];
 			B[indexB] =B [indexB]-B[col]*L[index_selected_col]/L[index_kk];
-			//B[indexB] =-2;
-			//B[col] = 1;
 		}
 
 		L[index] = L[index]-L[index_selected_row]*L[index_selected_col]/L[index_kk];
+	}
 
-		//L[index] = U[index]+L[index];		
+}*/
+
+__global__ void cuda_solve_Ux(float *U, float *B, int filas, int columnas, int selected_row, int selected_col)
+{
+	int col = blockIdx.x*blockDim.x+threadIdx.x;
+	int fil = blockIdx.y*blockDim.y+threadIdx.y;
+
+	for(int selected=filas-1; selected>=0; selected--) 
+    {
+    	selected_row = selected;
+    	selected_col = selected;
+
+		if((col < columnas && fil < filas) && (fil < selected_row && col < (selected_col+1)))
+		{
+			int index_selected_row = (columnas*selected_row)+col;
+			int index_selected_col = (columnas*fil)+selected_col;
+			int index_kk = (columnas*selected_row)+selected_col;
+			
+			int index = (columnas*fil)+col;
+
+			if(fil<selected_row && col == selected_col)
+			{
+				int indexB = fil;
+				//B[indexB] = B[col];
+				//B[indexB] = B[col];
+				B[indexB] = B[indexB]-B[col]*U[index_selected_col]/U[index_kk];;
+			}
+
+			U[index] = U[index]-U[index_selected_row]*U[index_selected_col]/U[index_kk];
+			//L[index] = U[index]+L[index];		
+		}
 	}
 
 }
 
-__global__ void cuda_solve_Ux(float *U, float *B, int filas, int columnas, int selected_row, int selected_col)
+/*__global__ void cuda_solve_Ux(float *U, float *B, int filas, int columnas, int selected_row, int selected_col)
 {
 	int col = blockIdx.x*blockDim.x+threadIdx.x;
 	int fil = blockIdx.y*blockDim.y+threadIdx.y;
@@ -105,7 +164,7 @@ __global__ void cuda_solve_Ux(float *U, float *B, int filas, int columnas, int s
 		//L[index] = U[index]+L[index];		
 	}
 
-}
+}*/
 
 __global__ void cuda_reduce_U(float *U, float *B, int filas, int columnas)
 {
@@ -147,12 +206,10 @@ int main()
 //Create matrix L
 	for (int i=0; i<N; i++) {
 		L[i] = 0.0f;
-		P[i] = 0.0f;
 		for (int j=0; j<N; j++) 
 			if (i == j)
 			{
-				P[i * N + j] = 1.0f;
-				P[i * N + j] = 1.0f;
+				L[i * N + j] = 1.0f;
 			} 
 	}
 
@@ -162,7 +219,6 @@ int main()
 	float *dev_U;
 	float *dev_L;
 	float *dev_B;
-	float *dev_P;
 
 	for(int i=0; i<filas; i++)
 	{
@@ -174,7 +230,7 @@ int main()
 		cout << endl;
 	}
 
-	a[0] = 0;
+	//a[0] = 0;
 
 	/*for(int i=0; i<filas; i++)
 	{
@@ -187,12 +243,10 @@ int main()
 
 	cudaMalloc((void**) &dev_U, filas*columnas*sizeof(float));
 	cudaMalloc((void**) &dev_L, filas*columnas*sizeof(float));
-	cudaMalloc((void**) &dev_P, filas*columnas*sizeof(float));
 	cudaMalloc((void**) &dev_B, filas*1*sizeof(float));
 
 	cudaMemcpy(dev_U, a, filas*columnas*sizeof(float), cudaMemcpyHostToDevice);
 	cudaMemcpy(dev_L, L, filas*columnas*sizeof(float), cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_P, P, filas*columnas*sizeof(float), cudaMemcpyHostToDevice);
 	cudaMemcpy(dev_B, xB, filas*1*sizeof(float), cudaMemcpyHostToDevice);
 
 	dim3 dimThreadsBloque(Threads, Threads);
@@ -209,25 +263,20 @@ int main()
 	auto t11 = std::chrono::high_resolution_clock::now();
     
     //LU factorization
-    //for(int selected=0; selected<filas-1; selected++) 
-    for(int selected=0; selected<1; selected++) 
+    for(int selected=0; selected<filas-1; selected++) 
     {
-    	//int *row;
-		//cuda_permutationP<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_P, filas, columnas, selected, selected, dev_per);
-		//cudaMemcpy(row, dev_per, 1*sizeof(int), cudaMemcpyDeviceToHost);
-		//cout << *row << endl;
 		cuda_LU_factorization<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_L, filas, columnas, selected, selected);
     }
 
-    for(int selected=0; selected<filas-1; selected++)
+    /*for(int selected=0; selected<filas-1; selected++)
     {
-		cuda_solve_Lx<<<dimBloques, dimThreadsBloque>>>(dev_L, dev_B, filas, columnas, selected, selected);
-    }
+    }*/
+	cuda_solve_Lx<<<dimBloques, dimThreadsBloque>>>(dev_L, dev_B, filas, columnas, 0, 0);
 
-    for(int selected=filas-1; selected>=0; selected--) 
+    /*for(int selected=filas-1; selected>=0; selected--) 
     {
-		cuda_solve_Ux<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_B, filas, columnas, selected, selected);
-    }
+    }*/
+	cuda_solve_Ux<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_B, filas, columnas, 0, 0);
 
 //Final reduce U
     cuda_reduce_U<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_B, filas, columnas);

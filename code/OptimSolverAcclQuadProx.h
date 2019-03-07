@@ -498,6 +498,7 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
         }
 
         //Quadratic proxy minimization
+        auto tl1 = std::chrono::high_resolution_clock::now();
         if(this->useLineSearch)
         {
             //cout << "useLineSearch" << endl;
@@ -509,7 +510,6 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
             this->optimProblem.evaluateGrad(this->y, this->y_f, this->y_fgrad);
             this->f_count++;
         }
-
        
         for(int i=0; i<this->optimProblem.n_vars; i++)
         {
@@ -541,12 +541,12 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
 
         for(int selected=0; selected<filas-1; selected++)
         {
-            cuda_solve_Lx<<<dimBloques, dimThreadsBloque>>>(temp_L, dev_B, filas, columnas, selected, selected);
+            cuda_solve_Lx<<<dimBloques, dimThreadsBloque>>>(temp_L, dev_B, filas, columnas, 0, 0);
         }
 
         for(int selected=filas-1; selected>=0; selected--) 
         {
-            cuda_solve_Ux<<<dimBloques, dimThreadsBloque>>>(temp_U, dev_B, filas, columnas, selected, selected);
+            cuda_solve_Ux<<<dimBloques, dimThreadsBloque>>>(temp_U, dev_B, filas, columnas, 0, 0);
         }
     //Final reduce U
         cuda_reduce_U<<<dimBloques, dimThreadsBloque>>>(temp_U, dev_B, filas, columnas);
