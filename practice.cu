@@ -7,7 +7,7 @@ using namespace std;
 
 #define Threads 32
 
-__global__ void add(float *U, float *L, int filas, int columnas, int selected_row, int selected_col)
+__global__ void LU_factorization(float *U, float *L, int filas, int columnas, int selected_row, int selected_col)
 {
 	int col = blockIdx.x*blockDim.x+threadIdx.x;
 	int fil = blockIdx.y*blockDim.y+threadIdx.y;
@@ -20,9 +20,15 @@ __global__ void add(float *U, float *L, int filas, int columnas, int selected_ro
 		
 		int index = (columnas*fil)+col;
 
+		if(col == selected_col)
+		{
+			L[index] = U[index_selected_col]/U[index_kk];
+		}
+
 		U[index] = U[index]-U[index_selected_row]*U[index_selected_col]/U[index_kk];
-		//L[index] = U[index]+L[index];
+		//L[index] = U[index]+L[index];		
 	}
+
 }
 
 int main()
@@ -31,6 +37,7 @@ int main()
 	int columnas = 4;
 	int N = filas;
 	float *L = (float *)malloc(N * N * sizeof(float));
+	float *a = (float *)malloc(N * N * sizeof(float));
 
 	for (int i=0; i<N; i++) {
 		L[i] = 0.0f;
@@ -40,10 +47,8 @@ int main()
 
 	//srand(time(NULL));
 
-	float *a = (float *)malloc(N * N * sizeof(float));;
-
-	float *dev_a;
-	float *dev_c;
+	float *dev_U;
+	float *dev_L;
 
 	for(int i=0; i<filas; i++)
 	{
@@ -64,11 +69,11 @@ int main()
 		cout << endl;
 	}*/
 
-	cudaMalloc((void**) &dev_a, filas*columnas*sizeof(float));
-	cudaMalloc((void**) &dev_c, filas*columnas*sizeof(float));
+	cudaMalloc((void**) &dev_U, filas*columnas*sizeof(float));
+	cudaMalloc((void**) &dev_L, filas*columnas*sizeof(float));
 
-	cudaMemcpy(dev_a, a, filas*columnas*sizeof(float), cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_c, L, filas*columnas*sizeof(float), cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_U, a, filas*columnas*sizeof(float), cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_L, L, filas*columnas*sizeof(float), cudaMemcpyHostToDevice);
 
 	dim3 dimThreadsBloque(Threads, Threads);
 
@@ -82,9 +87,9 @@ int main()
 
 	auto t11 = std::chrono::high_resolution_clock::now();
     
-    for(int selected=0; selected<3; selected++) 
+    for(int selected=0; selected<filas-1; selected++) 
     {
-		add<<<dimBloques, dimThreadsBloque>>>(dev_a, dev_c, filas, columnas, selected, selected);
+		LU_factorization<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_L, filas, columnas, selected, selected);
     }
 	
 	auto t12 = std::chrono::high_resolution_clock::now();
@@ -93,18 +98,31 @@ int main()
 	cout << "Time to gauss elimination: " << duration << endl; 
 
 
-	cudaMemcpy(a, dev_a, filas*columnas*sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpy(a, dev_U, filas*columnas*sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpy(L, dev_L, filas*columnas*sizeof(float), cudaMemcpyDeviceToHost);
 
 	//auto t12 = std::chrono::high_resolution_clock::now();
 
-	cudaFree(dev_a);
-	cudaFree(dev_c);
+	cudaFree(dev_U);
+	cudaFree(dev_L);
 
+	cout << "print U: " << endl;
 	for(int i=0; i<filas; i++)
 	{
 		for(int j=0; j<columnas; j++)
 		{
 			cout << a[i*N+j] << " - ";
+		}
+		cout << endl;
+	}
+
+	cout << "print L: " << endl;
+
+	for(int i=0; i<filas; i++)
+	{
+		for(int j=0; j<columnas; j++)
+		{
+			cout << L[i*N+j] << " - ";
 		}
 		cout << endl;
 	}
