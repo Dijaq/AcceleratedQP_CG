@@ -39,13 +39,24 @@ __global__ void solve_Lx(float *L, float *B, int filas, int columnas, int select
 
 	if((col < columnas && fil < filas) && (fil > selected_row && col > (selected_col-1)))
 	{
+		//Index for Matrix L
 		int index_selected_row = (columnas*selected_row)+col;
 		int index_selected_col = (columnas*fil)+selected_col;
 		int index_kk = (columnas*selected_row)+selected_col;
-		
 		int index = (columnas*fil)+col;
 
+		//Index for Matrix B
+		if((fil-1) == 0 && col>0)
+		{
+			int indexB = (columnas*(fil-1))+col;
+			int index_selected_row_B = (columnas*0)+selected_col;
+			B[indexB] = B[indexB]-B[index_selected_row_B]*L[index_selected_col]/L[index_kk];
+			//B[indexB] = 1;
+			//B[col] = 1;
+		}
+
 		L[index] = L[index]-L[index_selected_row]*L[index_selected_col]/L[index_kk];
+
 		//L[index] = U[index]+L[index];		
 	}
 
@@ -76,7 +87,7 @@ int main()
 	int columnas = 4;
 	int N = filas;
 	float *L = (float *)malloc(N * N * sizeof(float));
-	float *xB = (float *)malloc(N * 1 * sizeof(float));
+	float *xB = (float *)malloc(1 * N * sizeof(float));
 	float *a = (float *)malloc(N * N * sizeof(float));
 
 	xB[0] = -1;
@@ -143,15 +154,15 @@ int main()
 		LU_factorization<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_L, filas, columnas, selected, selected);
     }
 
-    for(int selected=0; selected<filas-1; selected++)
+    for(int selected=0; selected<1; selected++)
     {
 		solve_Lx<<<dimBloques, dimThreadsBloque>>>(dev_L, dev_B, filas, columnas, selected, selected);
     }
 
-    for(int selected=filas-1; selected>=0; selected--) 
+    /*for(int selected=filas-1; selected>=0; selected--) 
     {
 		solve_Ux<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_B, filas, columnas, selected, selected);
-    }
+    }*/
 	
 	auto t12 = std::chrono::high_resolution_clock::now();
 
