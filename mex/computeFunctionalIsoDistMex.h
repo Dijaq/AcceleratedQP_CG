@@ -10,7 +10,7 @@
 #ifndef COMPUTE_FUNCTIONAL_ISO_DIST_MEX_H
 #define COMPUTE_FUNCTIONAL_ISO_DIST_MEX_H
 
-#include "mex.h"
+//#include "mex.h"
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/SparseCore>
 #include "mexHelpers.cpp"

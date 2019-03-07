@@ -6,7 +6,7 @@
 //%            Meirav Galun (http://www.wisdom.weizmann.ac.il/~/meirav/)
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-#include "mex.h"
+//#include "mex.h"
 #include <Eigen/Dense>
 #include <Eigen/SparseCore>
 #include "mexHelpers.cpp"
@@ -58,7 +58,7 @@ void projBlockRotation3x3(VectorXd &pA, int dim)
 	}
 }
 
-void mexFunction(int nlhs, mxArray *plhs[],
+/*void mexFunction(int nlhs, mxArray *plhs[],
 	int nrhs, const mxArray*prhs[])
 
 {
@@ -84,4 +84,4 @@ void mexFunction(int nlhs, mxArray *plhs[],
 	// assign outputs
 	mapDenseMatrixToMex(pA, &(plhs[0]));
 
-}
+}*/

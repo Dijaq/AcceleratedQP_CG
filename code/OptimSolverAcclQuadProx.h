@@ -16,6 +16,7 @@
 #include "../class/Param_State.h"
 #include "../mex/computeMeshTranformationCoeffsMex.h"
 #include "OptimSolverIterative.h"
+//#include "../class/cuda_functions.cu"
 
 using namespace std;
 using namespace cv;
@@ -67,6 +68,7 @@ public:
     ~OptimSolverAcclQuadProx();
     void setKappa(float kappa);
     void solveTol(float TolX, float TolFun, int max_iter);
+    void cuda_solveTol(float TolX, float TolFun, int max_iter);
     void iterate();
     double min(double value1, double value2);
     void computeLineSearchCond(double &linesearch_cond_lhs, double &linesearch_cond_rhs);
@@ -160,7 +162,7 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
     cout << "Time AQP2: " << duration1 << endl;*/
     
-    
+
     //cout << "1****" << (*this->KKT.LU).matrixL().rows() << endl;
 
     //init internal variables
@@ -397,6 +399,144 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 
     }
 }
+
+void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_iter)
+{
+    MatrixXd matrix = this->KKT_mat;
+    auto t11 = std::chrono::high_resolution_clock::now();
+    this->KKT_Class = DSparseLU(matrix);
+    auto t12 = std::chrono::high_resolution_clock::now();
+
+    auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
+    cout << "Time AQP2: " << duration1 << endl;
+
+    this->p = VectorXd::Zero(this->optimProblem.n_vars,1);
+    this->y_fgrad = VectorXd::Zero(this->optimProblem.n_vars,1);
+
+    
+    for(int i=0; i<max_iter; i++)
+    {
+        auto t11 = std::chrono::high_resolution_clock::now();
+    
+        if(this->useAcceleration)
+        {
+          
+            if(this->useAccelerationStepSizeLimit)
+            {
+                MatrixXd tempX = this->x;
+                MatrixXd tempX_prev = this->x_prev;
+                matrix_reshape(tempX, tempX.rows()/this->optimProblem.dim, this->optimProblem.dim);
+                matrix_reshape(tempX_prev,tempX_prev.rows()/this->optimProblem.dim, this->optimProblem.dim);
+                
+                this->accelerationStepSize = min(this->theta, this->accelarationStepSizeLimitFactor*this->optimProblem.getMaxStep(tempX, (tempX-tempX_prev)));
+            }
+            else
+            {
+                this->accelerationStepSize = this->theta;
+            }
+            this->y = this->x+this->accelerationStepSize*(this->x-this->x_prev);
+        }
+        else
+        {
+            this->y = this->x;
+        }
+
+        //Quadratic proxy minimization
+        if(this->useLineSearch)
+        {
+            //cout << "useLineSearch" << endl;
+            this->optimProblem.evaluateValueGrad(this->y, this->y_f, this->y_fgrad);
+            this->f_count++;
+        }
+        else
+        {
+            this->optimProblem.evaluateGrad(this->y, this->y_f, this->y_fgrad);
+            this->f_count++;
+        }
+
+       
+        for(int i=0; i<this->optimProblem.n_vars; i++)
+        {
+            this->KKT_rhs(i,0) = -this->y_fgrad(i,0); 
+            
+        }
+
+      
+//        VectorXd prueba_lambda = this->KKT_Class.solve(this->KKT_rhs);
+        auto t21 = std::chrono::high_resolution_clock::now();
+        this->p_lambda = this->KKT_Class.solve(this->KKT_rhs);
+        auto t22 = std::chrono::high_resolution_clock::now();
+        auto duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(t22 - t21).count();
+        cout << "Iteration: " << i << " solve time: " <<duration2 << endl;
+        //export_mat_to_excel(prueba_lambda, "prueba_lambda");
+        //export_mat_to_excel(this->p_lambda, "ValidarDatos/c_p_lambda"+to_string(i));
+
+        for(int i=0; i<this->optimProblem.n_vars; i++)
+        {
+            this->p(i,0) = this->p_lambda(i,0);
+        }
+
+        //Initialize step size
+        cout << "t1: " << this->t << endl;
+        if(this->useLineSearchStepSizeMemory)
+        {
+            //cout << "useLineSearchStepSizeMemory" << endl;
+            this->t_start = min(this->t*this->lineSearchStepSizeMemoryFactor,1);
+        }
+        else
+        {
+            this->t_start = 1;
+        }
+
+        cout << "t_start: " << this->t_start << endl;
+
+        if(this->useLineSearchStepSizeLimit)
+        {
+            //export_sparsemat_to_excel(this->y.sparseView(), "1y");
+            //export_mat_to_excel(this->p, "1p");
+            MatrixXd tempY = this->y;
+            MatrixXd tempP = this->p;
+            matrix_reshape(tempY, tempY.rows()/this->optimProblem.dim, this->optimProblem.dim);
+            matrix_reshape(tempP,tempP.rows()/this->optimProblem.dim, this->optimProblem.dim);
+            //cout << "useLineSearchStepLimit" << endl;
+            //cout << "getstep: " << this->optimProblem.getMaxStep(tempY, tempP) << endl;
+            cout << "min: " << this->optimProblem.getMaxStep(tempY, tempP) << endl;
+            this->t = min(this->t_start, this->lineSearchStepSizeLimitFactor*this->optimProblem.getMaxStep(tempY, tempP));
+        }
+        else
+        {
+            this->t = this->t_start;
+        }
+
+        cout << "t2: " << this->t << endl;
+
+        //Line search
+        if(this->useLineSearch)
+        {
+            //cout << "useLineSearch" << endl;
+            double linesearch_cond_lhs, linesearch_cond_rhs;
+            computeLineSearchCond(linesearch_cond_lhs, linesearch_cond_rhs);
+
+            while(linesearch_cond_lhs > linesearch_cond_rhs)
+            {
+                cout << linesearch_cond_lhs << " <------www------> " << linesearch_cond_rhs << endl;
+                //cout << "beta: " << this->ls_beta<< endl;
+                this->t = this->ls_beta*this->t;
+                computeLineSearchCond(linesearch_cond_lhs, linesearch_cond_rhs);
+            }
+        }
+        cout << "t3: " << this->t << endl;
+
+        this->x_prev = this->x;
+        this->x = this->y+this->t*this->p;
+
+        auto t12 = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
+        cout << "Iteration: " << i << " time: " <<duration << endl;
+
+    }
+}
+
 
 void OptimSolverAcclQuadProx::iterate()
 {

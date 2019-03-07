@@ -1,7 +1,7 @@
 #ifndef COMPUTE_MESH_TRANFORMATION_COEFFS_MEX_H
 #define COMPUTE_MESH_TRANFORMATION_COEFFS_MEX_H
 
-#include "mex.h"
+//#include "mex.h"
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/SparseCore>
 #include "mexHelpers.cpp"

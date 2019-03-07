@@ -6,7 +6,7 @@
 //%            Meirav Galun (http://www.wisdom.weizmann.ac.il/~/meirav/)
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-#include "mex.h"
+//#include "mex.h"
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/SparseCore>
 
