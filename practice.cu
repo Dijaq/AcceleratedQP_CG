@@ -5,7 +5,7 @@
 
 using namespace std;
 
-#define Threads 32
+#define Threads 64
 
 //This method return the matrix L and U of a LU factorization
 __global__ void LU_factorization(float *U, float *L, int filas, int columnas, int selected_row, int selected_col)
@@ -110,8 +110,8 @@ __global__ void reduce_U(float *U, float *B, int filas, int columnas)
 
 int main()
 {
-	int filas = 10000;
-	int columnas = 10000;
+	int filas = 7000;
+	int columnas = 7000;
 	int N = filas;
 	float *L = (float *)malloc(N * N * sizeof(float));
 	float *xB = (float *)malloc(1 * N * sizeof(float));
