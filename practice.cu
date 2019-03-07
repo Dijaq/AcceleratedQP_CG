@@ -7,6 +7,7 @@ using namespace std;
 
 #define Threads 32
 
+//This method return the matrix L and U of a LU factorization
 __global__ void LU_factorization(float *U, float *L, int filas, int columnas, int selected_row, int selected_col)
 {
 	int col = blockIdx.x*blockDim.x+threadIdx.x;
@@ -24,6 +25,44 @@ __global__ void LU_factorization(float *U, float *L, int filas, int columnas, in
 		{
 			L[index] = U[index_selected_col]/U[index_kk];
 		}
+
+		U[index] = U[index]-U[index_selected_row]*U[index_selected_col]/U[index_kk];
+		//L[index] = U[index]+L[index];		
+	}
+
+}
+
+__global__ void solve_Lx(float *L, float *B, int filas, int columnas, int selected_row, int selected_col)
+{
+	int col = blockIdx.x*blockDim.x+threadIdx.x;
+	int fil = blockIdx.y*blockDim.y+threadIdx.y;
+
+	if((col < columnas && fil < filas) && (fil > selected_row && col > (selected_col-1)))
+	{
+		int index_selected_row = (columnas*selected_row)+col;
+		int index_selected_col = (columnas*fil)+selected_col;
+		int index_kk = (columnas*selected_row)+selected_col;
+		
+		int index = (columnas*fil)+col;
+
+		L[index] = L[index]-L[index_selected_row]*L[index_selected_col]/L[index_kk];
+		//L[index] = U[index]+L[index];		
+	}
+
+}
+
+__global__ void solve_Ux(float *U, float *B, int filas, int columnas, int selected_row, int selected_col)
+{
+	int col = blockIdx.x*blockDim.x+threadIdx.x;
+	int fil = blockIdx.y*blockDim.y+threadIdx.y;
+
+	if((col < columnas && fil < filas) && (fil < selected_row && col < (selected_col+1)))
+	{
+		int index_selected_row = (columnas*selected_row)+col;
+		int index_selected_col = (columnas*fil)+selected_col;
+		int index_kk = (columnas*selected_row)+selected_col;
+		
+		int index = (columnas*fil)+col;
 
 		U[index] = U[index]-U[index_selected_row]*U[index_selected_col]/U[index_kk];
 		//L[index] = U[index]+L[index];		
@@ -87,9 +126,15 @@ int main()
 
 	auto t11 = std::chrono::high_resolution_clock::now();
     
+    //LU factorization
     for(int selected=0; selected<filas-1; selected++) 
     {
 		LU_factorization<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_L, filas, columnas, selected, selected);
+    }
+
+    for(int selected=filas-1; selected>=0; selected--) 
+    {
+		solve_Ux<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_L, filas, columnas, selected, selected);
     }
 	
 	auto t12 = std::chrono::high_resolution_clock::now();
