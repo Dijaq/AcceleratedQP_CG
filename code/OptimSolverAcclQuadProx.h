@@ -144,25 +144,12 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
     pract.insert(2,2) = 1;*/
 
 
-    MatrixXd matrix = this->KKT_mat;
+    /*MatrixXd matrix = this->KKT_mat;
     //export_mat_to_excel(matrix, "c_KKT_matm");
     auto t11 = std::chrono::high_resolution_clock::now();
     //SparseLUPQ sparseLUPQ(KKT_mat);
     //this->KKT = SparseLUPQ(KKT_mat);
     //DSparseLU(matrix);
-    /*cout << "init matrix" << endl;
-    MatrixXd m = MatrixXd::Zero(4,4);
-    m(0,1) = 1;
-    m(0,2) = 3;
-    m(0,3) = 4;
-    m(1,0) = 3;
-    m(1,2) = 2;
-    m(2,0) = 1;
-    m(2,1) = 1;
-    m(3,1) = 4;
-    m(3,2) = 4;*/
-    //this->KKT_Class = DSparseLU(m, true);
-    //this->KKT_Class = DSparseLU(matrix, true);
     this->KKT_Class = DSparseLU(matrix);
     //export_mat_to_excel(this->KKT_Class.P.transpose()*this->KKT_Class.L*this->KKT_Class.U, "c_LU");
     //this->KKT = DSparseLU(matrix);
@@ -171,7 +158,8 @@ OptimSolverAcclQuadProx::OptimSolverAcclQuadProx(string tag, OptimProblemIsoDist
 
     auto t12 = std::chrono::high_resolution_clock::now();
     auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
-    cout << "Time AQP2: " << duration1 << endl;
+    cout << "Time AQP2: " << duration1 << endl;*/
+    
     
     //cout << "1****" << (*this->KKT.LU).matrixL().rows() << endl;
 
@@ -198,6 +186,14 @@ void OptimSolverAcclQuadProx::setKappa(float kappa)
 
 void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 {
+     MatrixXd matrix = this->KKT_mat;
+    auto t11 = std::chrono::high_resolution_clock::now();
+    this->KKT_Class = DSparseLU(matrix);
+    auto t12 = std::chrono::high_resolution_clock::now();
+
+    auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
+    cout << "Time AQP2: " << duration1 << endl;
+
     /*Secion of create the matriz L and U
     */
     //cout << "varsssss: "<< this->optimProblem.n_vars << endl;
@@ -205,9 +201,9 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
     this->y_fgrad = VectorXd::Zero(this->optimProblem.n_vars,1);
 
     //export_sparsemat_to_excel(this->KKT_mat, "KKT_mat");
-    SparseLU<SparseMatrix<double>> LU;
+    /*SparseLU<SparseMatrix<double>> LU;
     LU.analyzePattern(this->KKT_mat);
-    LU.factorize(this->KKT_mat);
+    LU.factorize(this->KKT_mat);*/
 
 /*    cout << "-->"<<LU.matrixL().cols() << endl;
     cout << "-->"<<LU.matrixU().cols() << endl;
@@ -224,6 +220,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
     for(int i=0; i<max_iter; i++)
     {
         auto t11 = std::chrono::high_resolution_clock::now();
+        //auto t11 = std::chrono::high_resolution_clock::now();
         //this is the time to start no necesarialy
         //t_iter_start = tic
 
@@ -321,7 +318,11 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
         //this->p_lambda = b;
 
 //        VectorXd prueba_lambda = this->KKT_Class.solve(this->KKT_rhs);
+        auto t21 = std::chrono::high_resolution_clock::now();
         this->p_lambda = this->KKT_Class.solve(this->KKT_rhs);
+        auto t22 = std::chrono::high_resolution_clock::now();
+        auto duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(t22 - t21).count();
+        cout << "Iteration: " << i << " solve time: " <<duration2 << endl;
         //export_mat_to_excel(prueba_lambda, "prueba_lambda");
         //export_mat_to_excel(this->p_lambda, "ValidarDatos/c_p_lambda"+to_string(i));
 

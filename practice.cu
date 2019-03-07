@@ -8,7 +8,7 @@ using namespace std;
 #define Threads 64
 
 //This method return the matrix L and U of a LU factorization
-__global__ void LU_factorization(float *U, float *L, int filas, int columnas, int selected_row, int selected_col)
+__global__ void cuda_LU_factorization(float *U, float *L, int filas, int columnas, int selected_row, int selected_col)
 {
 	int col = blockIdx.x*blockDim.x+threadIdx.x;
 	int fil = blockIdx.y*blockDim.y+threadIdx.y;
@@ -32,7 +32,7 @@ __global__ void LU_factorization(float *U, float *L, int filas, int columnas, in
 
 }
 
-__global__ void solve_Lx(float *L, float *B, int filas, int columnas, int selected_row, int selected_col)
+__global__ void cuda_solve_Lx(float *L, float *B, int filas, int columnas, int selected_row, int selected_col)
 {
 	int col = blockIdx.x*blockDim.x+threadIdx.x;
 	int fil = blockIdx.y*blockDim.y+threadIdx.y;
@@ -65,7 +65,7 @@ __global__ void solve_Lx(float *L, float *B, int filas, int columnas, int select
 
 }
 
-__global__ void solve_Ux(float *U, float *B, int filas, int columnas, int selected_row, int selected_col)
+__global__ void cuda_solve_Ux(float *U, float *B, int filas, int columnas, int selected_row, int selected_col)
 {
 	int col = blockIdx.x*blockDim.x+threadIdx.x;
 	int fil = blockIdx.y*blockDim.y+threadIdx.y;
@@ -92,7 +92,7 @@ __global__ void solve_Ux(float *U, float *B, int filas, int columnas, int select
 
 }
 
-__global__ void reduce_U(float *U, float *B, int filas, int columnas)
+__global__ void cuda_reduce_U(float *U, float *B, int filas, int columnas)
 {
 	int col = blockIdx.x*blockDim.x+threadIdx.x;
 	int fil = blockIdx.y*blockDim.y+threadIdx.y;
@@ -183,21 +183,21 @@ int main()
     //LU factorization
     for(int selected=0; selected<filas-1; selected++) 
     {
-		LU_factorization<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_L, filas, columnas, selected, selected);
+		cuda_LU_factorization<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_L, filas, columnas, selected, selected);
     }
 
     for(int selected=0; selected<filas-1; selected++)
     {
-		solve_Lx<<<dimBloques, dimThreadsBloque>>>(dev_L, dev_B, filas, columnas, selected, selected);
+		cuda_solve_Lx<<<dimBloques, dimThreadsBloque>>>(dev_L, dev_B, filas, columnas, selected, selected);
     }
 
     for(int selected=filas-1; selected>=0; selected--) 
     {
-		solve_Ux<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_B, filas, columnas, selected, selected);
+		cuda_solve_Ux<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_B, filas, columnas, selected, selected);
     }
 
 //Final reduce U
-    reduce_U<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_B, filas, columnas);
+    cuda_reduce_U<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_B, filas, columnas);
 	
 	auto t12 = std::chrono::high_resolution_clock::now();
 
