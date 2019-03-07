@@ -76,8 +76,15 @@ int main()
 	int columnas = 4;
 	int N = filas;
 	float *L = (float *)malloc(N * N * sizeof(float));
+	float *xB = (float *)malloc(N * 1 * sizeof(float));
 	float *a = (float *)malloc(N * N * sizeof(float));
 
+	xB[0] = -1;
+	xB[1] = 3;
+	xB[2] = 2;
+	xB[3] = 5;
+
+//Create matrix L
 	for (int i=0; i<N; i++) {
 		L[i] = 0.0f;
 		for (int j=0; j<N; j++) 
@@ -86,8 +93,10 @@ int main()
 
 	//srand(time(NULL));
 
+//Create Matrix A
 	float *dev_U;
 	float *dev_L;
+	float *dev_B;
 
 	for(int i=0; i<filas; i++)
 	{
@@ -110,9 +119,11 @@ int main()
 
 	cudaMalloc((void**) &dev_U, filas*columnas*sizeof(float));
 	cudaMalloc((void**) &dev_L, filas*columnas*sizeof(float));
+	cudaMalloc((void**) &dev_B, filas*1*sizeof(float));
 
 	cudaMemcpy(dev_U, a, filas*columnas*sizeof(float), cudaMemcpyHostToDevice);
 	cudaMemcpy(dev_L, L, filas*columnas*sizeof(float), cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_B, xB, filas*1*sizeof(float), cudaMemcpyHostToDevice);
 
 	dim3 dimThreadsBloque(Threads, Threads);
 
@@ -132,9 +143,14 @@ int main()
 		LU_factorization<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_L, filas, columnas, selected, selected);
     }
 
+    for(int selected=0; selected<filas-1; selected++)
+    {
+		solve_Lx<<<dimBloques, dimThreadsBloque>>>(dev_L, dev_B, filas, columnas, selected, selected);
+    }
+
     for(int selected=filas-1; selected>=0; selected--) 
     {
-		solve_Ux<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_L, filas, columnas, selected, selected);
+		solve_Ux<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_B, filas, columnas, selected, selected);
     }
 	
 	auto t12 = std::chrono::high_resolution_clock::now();
@@ -145,6 +161,7 @@ int main()
 
 	cudaMemcpy(a, dev_U, filas*columnas*sizeof(float), cudaMemcpyDeviceToHost);
 	cudaMemcpy(L, dev_L, filas*columnas*sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpy(xB, dev_B, filas*1*sizeof(float), cudaMemcpyDeviceToHost);
 
 	//auto t12 = std::chrono::high_resolution_clock::now();
 
@@ -170,6 +187,12 @@ int main()
 			cout << L[i*N+j] << " - ";
 		}
 		cout << endl;
+	}
+
+	cout << "print B: " << endl;
+	for(int i=0; i<filas; i++)
+	{
+		cout << xB[i] << endl;
 	}
 
 	//cout << std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count() << endl;
