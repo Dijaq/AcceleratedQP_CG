@@ -46,12 +46,15 @@ __global__ void solve_Lx(float *L, float *B, int filas, int columnas, int select
 		int index = (columnas*fil)+col;
 
 		//Index for Matrix B
-		if((fil-1) == 0 && col>0)
+		if(fil > selected_row && col == selected_col)
 		{
-			int indexB = (columnas*(fil-1))+col;
-			int index_selected_row_B = (columnas*0)+selected_col;
-			B[indexB] = B[indexB]-B[index_selected_row_B]*L[index_selected_col]/L[index_kk];
-			//B[indexB] = 1;
+			//int indexB = (columnas*(fil-1))+col;
+			int indexB = fil;
+			//int index_selected_row_B = (columnas*fil)+selected_col;
+			//int selected_first = (columnas*col)+(fil-1);
+			//B[indexB] = B[indexB]-B[0]*L[index_selected_col]/L[index_kk];
+			B[indexB] =B [indexB]-B[col]*L[index_selected_col]/L[index_kk];
+			//B[indexB] =-2;
 			//B[col] = 1;
 		}
 
@@ -154,7 +157,7 @@ int main()
 		LU_factorization<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_L, filas, columnas, selected, selected);
     }
 
-    for(int selected=0; selected<1; selected++)
+    for(int selected=0; selected<filas-1; selected++)
     {
 		solve_Lx<<<dimBloques, dimThreadsBloque>>>(dev_L, dev_B, filas, columnas, selected, selected);
     }
