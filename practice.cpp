@@ -5,10 +5,13 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include <stdio.h>
+#include <stdlib.h>
 #include "code/mathelpers.h"
 #include "code/utils.h"
 #include <glm/glm.hpp>
 #include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include <GL/freeglut.h>
 #include <GL/glut.h>
 #include <GL/gl.h>
@@ -18,10 +21,22 @@
 
 using namespace std;
 using namespace Eigen;
+using namespace glm;
 
 GLuint VBO;
 
-static void RenderSceneCB()
+int main()
+{
+    if(!glfwInit())
+    {
+        cout << "Error with GLFW" << endl;
+        return -1;
+    }
+
+    return 0;
+}
+
+/*static void RenderSceneCB()
 {
     glClear(GL_COLOR_BUFFER_BIT);
     glutSwapBuffers();
@@ -104,4 +119,4 @@ int main(int argc, char** argv)
     glutMainLoop();
 
     return 0;
-}
+}*/
