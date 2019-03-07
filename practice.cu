@@ -97,11 +97,12 @@ __global__ void reduce_U(float *U, float *B, int filas, int columnas)
 	int col = blockIdx.x*blockDim.x+threadIdx.x;
 	int fil = blockIdx.y*blockDim.y+threadIdx.y;
 
-	if(fil == col)
+	if((col < columnas && fil < filas) && (fil == col))
 	{
 		int index = (columnas*fil)+col;
-		U[index] = U[index]/U[index];
 		B[fil] = B[fil]/U[index];
+
+		U[index] = U[index]/U[index];
 	}
 
 }
@@ -109,17 +110,22 @@ __global__ void reduce_U(float *U, float *B, int filas, int columnas)
 
 int main()
 {
-	int filas = 4;
-	int columnas = 4;
+	int filas = 10000;
+	int columnas = 10000;
 	int N = filas;
 	float *L = (float *)malloc(N * N * sizeof(float));
 	float *xB = (float *)malloc(1 * N * sizeof(float));
 	float *a = (float *)malloc(N * N * sizeof(float));
 
-	xB[0] = -1;
+	/*xB[0] = -1;
 	xB[1] = 3;
 	xB[2] = 2;
-	xB[3] = 5;
+	xB[3] = 5;*/
+
+	for(int i=0; i<N; i++)
+	{
+		xB[i] = rand()%5+1;
+	}
 
 //Create matrix L
 	for (int i=0; i<N; i++) {
@@ -135,7 +141,7 @@ int main()
 	float *dev_L;
 	float *dev_B;
 
-	for(int i=0; i<filas; i++)
+	/*for(int i=0; i<filas; i++)
 	{
 		for(int j=0; j<columnas; j++)
 		{
@@ -143,7 +149,7 @@ int main()
 		  cout << a[i*N+j] << " - ";
 		}
 		cout << endl;
-	}
+	}*/
 
 	/*for(int i=0; i<filas; i++)
 	{
@@ -191,7 +197,7 @@ int main()
     }
 
 //Final reduce U
-    //reduce_U<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_B, filas, columnas);
+    reduce_U<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_B, filas, columnas);
 	
 	auto t12 = std::chrono::high_resolution_clock::now();
 
@@ -208,7 +214,7 @@ int main()
 	cudaFree(dev_U);
 	cudaFree(dev_L);
 
-	cout << "print U: " << endl;
+	/*cout << "print U: " << endl;
 	for(int i=0; i<filas; i++)
 	{
 		for(int j=0; j<columnas; j++)
@@ -233,7 +239,7 @@ int main()
 	for(int i=0; i<filas; i++)
 	{
 		cout << xB[i] << endl;
-	}
+	}*/
 
 	//cout << std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count() << endl;
 
