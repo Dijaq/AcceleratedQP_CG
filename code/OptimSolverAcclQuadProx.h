@@ -16,7 +16,7 @@
 #include "../class/Param_State.h"
 #include "../mex/computeMeshTranformationCoeffsMex.h"
 #include "OptimSolverIterative.h"
-//#include "../class/cuda_functions.cu"
+#include "../class/cuda_functions.cu"
 
 using namespace std;
 using namespace cv;
@@ -403,18 +403,66 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_iter)
 {
     MatrixXd matrix = this->KKT_mat;
-    auto t11 = std::chrono::high_resolution_clock::now();
     this->KKT_Class = DSparseLU(matrix);
+
+    int N = matrix.rows();
+    int filas = matrix.rows();
+    int columnas = matrix.cols();
+
+/*Start Section of CUDA*/
+    auto t11 = std::chrono::high_resolution_clock::now();
+    float *L = (float *)malloc(N * N * sizeof(float));
+    float *xB = (float *)malloc(1 * N * sizeof(float));
+    float *U = (float *)malloc(N * N * sizeof(float));//This is the complete matrix
+
+    for (int i=0; i<N; i++) {
+        L[i] = 0.0f;
+        for (int j=0; j<N; j++) 
+            if (i == j) L[i * N + j] = 1.0f;
+    }
+
+    for (int i=0; i<N; i++) {
+        for (int j=0; j<N; j++) 
+            U[i * N + j] = matrix(i,j);
+    }
+
+    float *dev_U;
+    float *dev_L;
+
+
+    cudaMalloc((void**) &dev_U, filas*columnas*sizeof(float));
+    cudaMalloc((void**) &dev_L, filas*columnas*sizeof(float));
+
+    cudaMemcpy(dev_U, U, filas*columnas*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_L, L, filas*columnas*sizeof(float), cudaMemcpyHostToDevice);
+    //cudaMemcpy(dev_B, xB, filas*1*sizeof(float), cudaMemcpyHostToDevice);
+
+    dim3 dimThreadsBloque(Threads, Threads);
+
+    float BFloat = (float) columnas / (float) Threads;
+    int B = (int) ceil(BFloat);
+
+    // El grid tendrá B número de bloques en x y y
+    dim3 dimBloques(B, B);
+    
+    //LU factorization
+    for(int selected=0; selected<filas-1; selected++) 
+    {
+        cuda_LU_factorization<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_L, filas, columnas, selected, selected);
+    }
+
     auto t12 = std::chrono::high_resolution_clock::now();
 
     auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
     cout << "Time AQP2: " << duration1 << endl;
 
+/*En section CUDA*/
+
     this->p = VectorXd::Zero(this->optimProblem.n_vars,1);
     this->y_fgrad = VectorXd::Zero(this->optimProblem.n_vars,1);
 
     
-    for(int i=0; i<max_iter; i++)
+    for(int iteration=0; iteration<max_iter; iteration++)
     {
         auto t11 = std::chrono::high_resolution_clock::now();
     
@@ -461,19 +509,59 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
             
         }
 
-      
-//        VectorXd prueba_lambda = this->KKT_Class.solve(this->KKT_rhs);
+/*Create CUDA values*/
         auto t21 = std::chrono::high_resolution_clock::now();
-        this->p_lambda = this->KKT_Class.solve(this->KKT_rhs);
+
+        float *temp_U;
+        float *temp_L;
+        float *dev_B;
+
+        cudaMalloc((void**) &temp_U, filas*columnas*sizeof(float));
+        cudaMalloc((void**) &temp_L, filas*columnas*sizeof(float));
+
+        cudaMalloc((void**) &dev_B, filas*1*sizeof(float));
+
+        cudaMemcpy(temp_U, dev_U, filas*columnas*sizeof(float), cudaMemcpyDeviceToDevice);
+        cudaMemcpy(temp_L, dev_L, filas*columnas*sizeof(float), cudaMemcpyDeviceToDevice);
+
+        for (int i=0; i<N; i++) {
+            xB[i] = this->KKT_rhs(i,0);
+        }
+
+        cudaMemcpy(dev_B, xB, filas*1*sizeof(float), cudaMemcpyHostToDevice);
+
+        for(int selected=0; selected<filas-1; selected++)
+        {
+            cuda_solve_Lx<<<dimBloques, dimThreadsBloque>>>(temp_L, dev_B, filas, columnas, selected, selected);
+        }
+
+        for(int selected=filas-1; selected>=0; selected--) 
+        {
+            cuda_solve_Ux<<<dimBloques, dimThreadsBloque>>>(temp_U, dev_B, filas, columnas, selected, selected);
+        }
+    //Final reduce U
+        cuda_reduce_U<<<dimBloques, dimThreadsBloque>>>(temp_U, dev_B, filas, columnas);
+
+        cudaMemcpy(xB, dev_B, filas*1*sizeof(float), cudaMemcpyDeviceToHost);
+
+        cudaFree(temp_U);
+        cudaFree(temp_L);
+        cudaFree(dev_B);
+
+//        VectorXd prueba_lambda = this->KKT_Class.solve(this->KKT_rhs);
+        //this->p_lambda = this->KKT_Class.solve(this->KKT_rhs);
         auto t22 = std::chrono::high_resolution_clock::now();
         auto duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(t22 - t21).count();
-        cout << "Iteration: " << i << " solve time: " <<duration2 << endl;
+        cout << "Iteration: " << iteration << " solve time: " <<duration2 << endl;
         //export_mat_to_excel(prueba_lambda, "prueba_lambda");
         //export_mat_to_excel(this->p_lambda, "ValidarDatos/c_p_lambda"+to_string(i));
 
+/*End Cuda values*/
+
         for(int i=0; i<this->optimProblem.n_vars; i++)
         {
-            this->p(i,0) = this->p_lambda(i,0);
+            this->p(i,0) = xB[i,0];
+            //this->p(i,0) = this->p_lambda(i,0);
         }
 
         //Initialize step size
@@ -532,9 +620,14 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
 
         auto t12 = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
-        cout << "Iteration: " << i << " time: " <<duration << endl;
+        cout << "Iteration: " << iteration << " time: " <<duration << endl;
 
     }
+
+    cudaFree(L);
+    cudaFree(U);
+    cudaFree(xB);
+
 }
 
 

@@ -10,7 +10,7 @@
 #include <Eigen/Dense>
 #include <Eigen/SparseCore>
 #include "mexHelpers.cpp"
-#include <svd3x3.h>
+//#include <svd3x3.h>
 
 using namespace Eigen;
 using namespace igl;
@@ -35,7 +35,7 @@ void projBlockRotation2x2(VectorXd &pA, int dim)
 	}
 }
 
-void projBlockRotation3x3(VectorXd &pA, int dim)
+/*void projBlockRotation3x3(VectorXd &pA, int dim)
 {
 	int block_size = dim*dim;
 	int num_blocks = pA.size() / block_size;
@@ -56,7 +56,7 @@ void projBlockRotation3x3(VectorXd &pA, int dim)
 		R = U * V.transpose(); // polar
 		currA = R.cast<double>();
 	}
-}
+}*/
 
 /*void mexFunction(int nlhs, mxArray *plhs[],
 	int nrhs, const mxArray*prhs[])

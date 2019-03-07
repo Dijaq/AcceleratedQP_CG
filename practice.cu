@@ -110,8 +110,8 @@ __global__ void cuda_reduce_U(float *U, float *B, int filas, int columnas)
 
 int main()
 {
-	int filas = 7000;
-	int columnas = 7000;
+	int filas = 4;
+	int columnas = 4;
 	int N = filas;
 	float *L = (float *)malloc(N * N * sizeof(float));
 	float *xB = (float *)malloc(1 * N * sizeof(float));
@@ -214,7 +214,7 @@ int main()
 	cudaFree(dev_U);
 	cudaFree(dev_L);
 
-	/*cout << "print U: " << endl;
+	cout << "print U: " << endl;
 	for(int i=0; i<filas; i++)
 	{
 		for(int j=0; j<columnas; j++)
@@ -239,7 +239,7 @@ int main()
 	for(int i=0; i<filas; i++)
 	{
 		cout << xB[i] << endl;
-	}*/
+	}
 
 	//cout << std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count() << endl;
 

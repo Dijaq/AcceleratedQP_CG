@@ -144,8 +144,8 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
 
             if(this->dim == 2)
                 projBlockRotation2x2(this->R, this->dim);
-            else
-                projBlockRotation3x3(this->R, this->dim);
+          /*  else
+                projBlockRotation3x3(this->R, this->dim);/
             //this->x0 = solveConstrainedLS(this->T, this->R, this->eq_lhs, this->eq_rhs);
 
             /*if(arapIter == 0)
