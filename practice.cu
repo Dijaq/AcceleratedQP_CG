@@ -78,11 +78,34 @@ __global__ void solve_Ux(float *U, float *B, int filas, int columnas, int select
 		
 		int index = (columnas*fil)+col;
 
+		if(fil<selected_row && col == selected_col)
+		{
+			int indexB = fil;
+			//B[indexB] = B[col];
+			//B[indexB] = B[col];
+			B[indexB] = B[indexB]-B[col]*U[index_selected_col]/U[index_kk];;
+		}
+
 		U[index] = U[index]-U[index_selected_row]*U[index_selected_col]/U[index_kk];
 		//L[index] = U[index]+L[index];		
 	}
 
 }
+
+__global__ void reduce_U(float *U, float *B, int filas, int columnas)
+{
+	int col = blockIdx.x*blockDim.x+threadIdx.x;
+	int fil = blockIdx.y*blockDim.y+threadIdx.y;
+
+	if(fil == col)
+	{
+		int index = (columnas*fil)+col;
+		U[index] = U[index]/U[index];
+		B[fil] = B[fil]/U[index];
+	}
+
+}
+
 
 int main()
 {
@@ -162,10 +185,13 @@ int main()
 		solve_Lx<<<dimBloques, dimThreadsBloque>>>(dev_L, dev_B, filas, columnas, selected, selected);
     }
 
-    /*for(int selected=filas-1; selected>=0; selected--) 
+    for(int selected=filas-1; selected>=0; selected--) 
     {
 		solve_Ux<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_B, filas, columnas, selected, selected);
-    }*/
+    }
+
+//Final reduce U
+    //reduce_U<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_B, filas, columnas);
 	
 	auto t12 = std::chrono::high_resolution_clock::now();
 
