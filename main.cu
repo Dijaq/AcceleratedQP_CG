@@ -95,7 +95,7 @@ int main()
     {
         cout << "Start Iterations: " << endl;
         auto t21 = std::chrono::high_resolution_clock::now();
-        listOptimSolverAccQuadProx[i].solveTol(TolX, TolFun, num_iter);
+        listOptimSolverAccQuadProx[i].cuda_solveTol(TolX, TolFun, num_iter);
         auto t22 = std::chrono::high_resolution_clock::now();
         auto duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(t22 - t21).count();
         cout << "Optim Solver Iter Acc Quad Prox: " << duration2 << endl;

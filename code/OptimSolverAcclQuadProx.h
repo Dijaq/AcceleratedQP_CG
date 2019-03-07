@@ -415,7 +415,7 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
     float *xB = (float *)malloc(1 * N * sizeof(float));
     float *U = (float *)malloc(N * N * sizeof(float));//This is the complete matrix
 
-    for (int i=0; i<N; i++) {
+    /*for(int i=0; i<N; i++) {
         L[i] = 0.0f;
         for (int j=0; j<N; j++) 
             if (i == j) L[i * N + j] = 1.0f;
@@ -424,6 +424,14 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
     for (int i=0; i<N; i++) {
         for (int j=0; j<N; j++) 
             U[i * N + j] = matrix(i,j);
+    }*/
+
+    for (int i=0; i<N; i++) {
+        for (int j=0; j<N; j++) 
+         {
+            U[i * N + j] = this->KKT_Class.U(i,j);
+            L[i * N + j] = this->KKT_Class.L(i,j);
+         }  
     }
 
     float *dev_U;
@@ -446,10 +454,10 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
     dim3 dimBloques(B, B);
     
     //LU factorization
-    for(int selected=0; selected<filas-1; selected++) 
+    /*for(int selected=0; selected<filas-1; selected++) 
     {
         cuda_LU_factorization<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_L, filas, columnas, selected, selected);
-    }
+    }*/
 
     auto t12 = std::chrono::high_resolution_clock::now();
 
@@ -524,6 +532,7 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
         cudaMemcpy(temp_U, dev_U, filas*columnas*sizeof(float), cudaMemcpyDeviceToDevice);
         cudaMemcpy(temp_L, dev_L, filas*columnas*sizeof(float), cudaMemcpyDeviceToDevice);
 
+        this->KKT_rhs = (this->KKT_Class.P)*this->KKT_rhs;
         for (int i=0; i<N; i++) {
             xB[i] = this->KKT_rhs(i,0);
         }
@@ -560,9 +569,10 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
 
         for(int i=0; i<this->optimProblem.n_vars; i++)
         {
-            this->p(i,0) = xB[i,0];
+            this->p(i,0) = xB[i];
             //this->p(i,0) = this->p_lambda(i,0);
         }
+        //export_mat_to_excel(this->p, "cuda_p"+to_string(iteration));
 
         //Initialize step size
         cout << "t1: " << this->t << endl;

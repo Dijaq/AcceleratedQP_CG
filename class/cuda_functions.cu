@@ -9,7 +9,7 @@
 
 using namespace std;
 
-#define Threads 64
+#define Threads 32
 
 //This method return the matrix L and U of a LU factorization
 __global__ void cuda_LU_factorization(float *U, float *L, int filas, int columnas, int selected_row, int selected_col)
