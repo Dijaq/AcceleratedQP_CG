@@ -222,6 +222,17 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 
     //run num_iter iteration
     //for(int i=0; i<100; i++)
+
+    MatrixXi Fi(this->optimProblem.F.rows(), this->optimProblem.F.cols());
+    for(int i=0; i<this->optimProblem.F.rows(); i++)
+    {
+        for(int j=0; j<this->optimProblem.F.cols(); j++)
+        {
+            Fi(i,j) = this->optimProblem.F(i,j);
+        }
+    }
+
+
     for(int i=0; i<max_iter; i++)
     {
         auto t11 = std::chrono::high_resolution_clock::now();
@@ -408,6 +419,24 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
         auto t12 = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
         cout << "Iteration: " << i << " time: " <<duration << endl;
+
+        /*if((i+1)%10 == 0)
+        {
+            MatrixXd exportVAQP = this->x;
+            matrix_reshape(exportVAQP, exportVAQP.rows()/2, 2);
+            MatrixXd nAQPV(exportVAQP.rows(), exportVAQP.cols()+1);
+            create_column_zeros(exportVAQP, nAQPV);
+            igl::writeOBJ("gecko_"+to_string(i+1)+".obj", nAQPV, optimProblem.F);
+        }*/
+
+        if((i+1)%10 == 0)
+        {
+            MatrixXd VerticeTexture = this->x;
+            matrix_reshape(VerticeTexture, VerticeTexture.rows()/2, 2);
+            MatrixXd VerticeText = VerticeTexture/100;
+            igl::writeOBJ("presentacion_cow/cow_"+to_string(i+1)+".obj", this->optimProblem.V, Fi, Eigen::MatrixXd(), Eigen::MatrixXi(), VerticeText, Fi);
+        }
+
 
     }
 }

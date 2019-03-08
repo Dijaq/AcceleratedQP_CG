@@ -23,7 +23,7 @@ void exportOptimProblem(OptimProblemIsoDist optimProblem);
 int main()
 {
     	//Example of gecko deformation
-	int num_iter =100;
+	int num_iter =40;
 	double TolX = 1e-10;
 	double TolFun = 1e-6;
 
@@ -32,7 +32,7 @@ int main()
     read_mesh_3D("data_cow/V.csv", "data_cow/F.csv","data_cow/Vt.csv", "data_cow/Ft.csv", mesh);
     update_F(mesh.F);
 
-
+    
 //    SparseMatrix<double>  eq_lhs = kron_sparse(MatrixXd::Identity(2,2).sparseView(), sparse_to_parameterization(mesh.inds_bF, mesh.V.rows()));
     mesh.eq_lhs = kron_sparse(MatrixXd::Identity(2,2).sparseView(), sparse_to_parameterization(mesh.inds_bF, mesh.V.rows()));
     mesh.eq_rhs = MatrixXd::Zero(2,1);
@@ -111,6 +111,9 @@ int main()
     //igl::writeOBJ("cow.obj", mesh.V, mesh.F);
 
     //Create init parameterization
+   
+    //igl::writeOBJ("cow_param.obj", mesh.V, mesh.F, Eigen::MatrixXd(), Eigen::MatrixXi(), mesh.Vt, mesh.F);
+
     MatrixXi Fi(mesh.F.rows(), mesh.F.cols());
     for(int i=0; i<mesh.F.rows(); i++)
     {
@@ -119,8 +122,8 @@ int main()
             Fi(i,j) = mesh.F(i,j);
         }
     }
-    igl::writeOBJ("cow_param.obj", mesh.V, Fi, Eigen::MatrixXd(), Eigen::MatrixXi(), mesh.Vt, Fi);
-    //igl::writeOBJ("cow_param.obj", mesh.V, mesh.F, Eigen::MatrixXd(), Eigen::MatrixXi(), mesh.Vt, mesh.F);
+    //mesh.Vt = mesh.Vt*10;
+    igl::writeOBJ("presentacion_cow/cow_init_0.obj", mesh.V, Fi, Eigen::MatrixXd(), Eigen::MatrixXi(), mesh.Vt, Fi);
 
     //Create final parameterization
     print_dimensions("xx: ", listOptimSolverAccQuadProx[0].x);
