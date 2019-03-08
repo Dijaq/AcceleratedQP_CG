@@ -52,7 +52,7 @@ int main()
 
 //Seccion of read a mesh
     read_mesh_2D("data_gecko/V.csv", "data_gecko/F.csv","data_gecko/eq_lhs.csv", "data_gecko/eq_rhs.csv", mesh);
-    print_dimensions("V: ", mesh.V);
+    //print_dimensions("V: ", mesh.V);
 
     /*cout << "F: " << mesh.F.rows() << " - " << mesh.F.cols() << endl;
     cout << "V: " << mesh.V.rows() << " - " << mesh.V.cols() << endl;
@@ -75,8 +75,8 @@ int main()
     auto durationOP = std::chrono::duration_cast<std::chrono::milliseconds>(t02 - t01).count();
     cout << "End Optim Problem: " << durationOP << endl;
 
-    cout << optimProblem.T.rows() << " - "<< optimProblem.T.cols()<<endl;
-    cout << optimProblem.areas.rows()<< " - "<< optimProblem.areas.cols() << endl;
+    //cout << optimProblem.T.rows() << " - "<< optimProblem.T.cols()<<endl;
+    //cout << optimProblem.areas.rows()<< " - "<< optimProblem.areas.cols() << endl;
 
     //Setup solver
     auto t11 = std::chrono::high_resolution_clock::now();
@@ -101,10 +101,10 @@ int main()
         cout << "Optim Solver Iter Acc Quad Prox: " << duration2 << endl;
     }
 
-    print_dimensions("x", optimProblemAQP.x);
+    //print_dimensions("x", optimProblemAQP.x);
     //export_mat_to_excel(optimProblemAQP.x, "xFinal"); 
 
-    cout << "Finish Program" << endl;
+    cout << "Finish Iterations" << endl;
     /*cout << "Start Practice Section" << endl;
 
     MatrixXd practice(3,3);
@@ -170,14 +170,14 @@ int main()
     cout << "Time: " << duration << endl;
     */
 
-    print_dimensions("Fx0: ", optimProblem.x0);
+    //print_dimensions("Fx0: ", optimProblem.x0);
     MatrixXd exportV = optimProblem.x0;
     //matrix_reshape(exportV, exportV.rows()/2, 2);
     MatrixXd nV(exportV.rows(), exportV.cols()+1);
     create_column_zeros(exportV, nV);
-    igl::writeOBJ("IsoDist_cpp.obj", nV, mesh.F);
+    igl::writeOBJ("presentacion_gecko/gecko_init_0.obj", nV, mesh.F);
 
-    print_dimensions("Fx: ", optimProblemAQP.x);
+    //print_dimensions("Fx: ", optimProblemAQP.x);
     //MatrixXd exportVAQP = optimProblemAQP.x;
     MatrixXd exportVAQP = listOptimSolverAccQuadProx[0].x;
     matrix_reshape(exportVAQP, exportVAQP.rows()/2, 2);

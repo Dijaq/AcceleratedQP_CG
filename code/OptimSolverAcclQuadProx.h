@@ -197,7 +197,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
     auto t12 = std::chrono::high_resolution_clock::now();
 
     auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
-    cout << "Time AQP2: " << duration1 << endl;
+    cout << "Time LU descomposition: " << duration1 << endl;
 
     /*Secion of create the matriz L and U
     */
@@ -347,7 +347,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 
         auto t22 = std::chrono::high_resolution_clock::now();
         auto duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(t22 - t21).count();
-        cout << "Iteration: " << i << " solve time: " <<duration2 << endl;
+        //cout << "Iteration: " << i << " solve time: " <<duration2 << endl;
         //export_mat_to_excel(prueba_lambda, "prueba_lambda");
         //export_mat_to_excel(this->p_lambda, "ValidarDatos/c_p_lambda"+to_string(i));
 
@@ -359,7 +359,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
         //export_mat_to_excel(this->p, "ValidarDatos/c_p"+to_string(i+1));
 
         //Initialize step size
-        cout << "t1: " << this->t << endl;
+        //cout << "t1: " << this->t << endl;
         if(this->useLineSearchStepSizeMemory)
         {
             //cout << "useLineSearchStepSizeMemory" << endl;
@@ -370,7 +370,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             this->t_start = 1;
         }
 
-        cout << "t_start: " << this->t_start << endl;
+        //cout << "t_start: " << this->t_start << endl;
 
         //cout << "start: " << this->t_start << endl;
 
@@ -384,7 +384,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             matrix_reshape(tempP,tempP.rows()/this->optimProblem.dim, this->optimProblem.dim);
             //cout << "useLineSearchStepLimit" << endl;
             //cout << "getstep: " << this->optimProblem.getMaxStep(tempY, tempP) << endl;
-            cout << "min: " << this->lineSearchStepSizeLimitFactor*this->optimProblem.getMaxStep(tempY, tempP) << endl;
+            //cout << "min: " << this->lineSearchStepSizeLimitFactor*this->optimProblem.getMaxStep(tempY, tempP) << endl;
             this->t = min(this->t_start, this->lineSearchStepSizeLimitFactor*this->optimProblem.getMaxStep(tempY, tempP));
         }
         else
@@ -392,7 +392,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             this->t = this->t_start;
         }
 
-        cout << "t2: " << this->t << endl;
+        //cout << "t2: " << this->t << endl;
 
         //Line search
         if(this->useLineSearch)
@@ -405,13 +405,13 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 
             while(linesearch_cond_lhs > linesearch_cond_rhs)
             {
-                cout << linesearch_cond_lhs << " <------www------> " << linesearch_cond_rhs << endl;
+                //cout << linesearch_cond_lhs << " <------www------> " << linesearch_cond_rhs << endl;
                 //cout << "beta: " << this->ls_beta<< endl;
                 this->t = this->ls_beta*this->t;
                 computeLineSearchCond(linesearch_cond_lhs, linesearch_cond_rhs);
             }
         }
-        cout << "t3: " << this->t << endl;
+        //cout << "t3: " << this->t << endl;
 
         this->x_prev = this->x;
         this->x = this->y+this->t*this->p;
@@ -426,7 +426,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             matrix_reshape(exportVAQP, exportVAQP.rows()/2, 2);
             MatrixXd nAQPV(exportVAQP.rows(), exportVAQP.cols()+1);
             create_column_zeros(exportVAQP, nAQPV);
-            igl::writeOBJ("gecko_"+to_string(i+1)+".obj", nAQPV, optimProblem.F);
+            igl::writeOBJ("presentacion_gecko/gecko_"+to_string(i+1)+".obj", nAQPV, optimProblem.F);
         }*/
 
         if((i+1)%10 == 0)

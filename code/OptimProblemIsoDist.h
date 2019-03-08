@@ -102,30 +102,30 @@ OptimProblemIsoDist::OptimProblemIsoDist(Param_State mesh, MatrixXd V0, int init
     this->initArapIter = initArapIter;
 
     //Compute transformations
-    cout << "first step" << endl;
+    //cout << "first step" << endl;
 
     if(mesh.V.cols() == 2)
         computeMeshTranformationCoeffsFullDim(this->F, this->V, this->T, this->areas);//Finished
     else
         computeMeshTranformationCoeffsFlatenning(this->F, this->V, this->T, this->areas);
     //set initial configuration
-    cout << "second step" << endl;
+    //cout << "second step" << endl;
     initVertices(V0);//Falta
     //set quadratic proxy
-    cout << "third step" << endl;
+    //cout << "third step" << endl;
     setQuadraticProxy();//Finished
     //Finish construction
-    cout << "four step" << endl;
+    //cout << "four step" << endl;
     initProblem();//Finished
 }
 
 void OptimProblemIsoDist::initVertices(MatrixXd v0)
 { 
-    print_dimensions("V0: ", v0);
+    //print_dimensions("V0: ", v0);
     //MatrixXd x0;
     if((v0.rows() != 0) || (v0.cols() != 0))
     {
-        cout << "no es empty" << endl;
+        //cout << "no es empty" << endl;
         this->x0 = v0;
     }
     else
@@ -169,7 +169,7 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
         //cout << "size: "<<this->x0.rows() << "-"<<this->x0.cols() << endl;
     }
 
-    print_dimensions("T: ", this->T);
+    //print_dimensions("T: ", this->T);
 
 /*    cout << this->T.rows() << "-" << this->T.cols() << endl;
     cout << x0.rows() << "-" << x0.cols() << endl;*/
@@ -177,7 +177,7 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
     //cout << "->"<<(this->T).rows() <<" - " <<(this->T).cols()<<endl;
     this->Tx = this->T*colStack(this->x0);
 
-    cout << "dim: " << this->dim << endl;
+    //cout << "dim: " << this->dim << endl;
 
     double val;
     if(this->dim == 2)
@@ -187,14 +187,14 @@ void OptimProblemIsoDist::initVertices(MatrixXd v0)
     //Fix if there are flips
     if(this->flips)
     {
-        cout << "Hay flips" << endl;
+        //cout << "Hay flips" << endl;
         //Project onto BD
         /*Falta implementar SOLVER PROJECT BD*/
     }
     else
     {
         //No hace nada
-        cout << "No hay flips" << endl;
+        //cout << "No hay flips" << endl;
     }
 
     //ProgBar is only for matlab

@@ -23,7 +23,7 @@ void exportOptimProblem(OptimProblemIsoDist optimProblem);
 int main()
 {
     	//Example of gecko deformation
-	int num_iter =40;
+	int num_iter =120;
 	double TolX = 1e-10;
 	double TolFun = 1e-6;
 
@@ -37,9 +37,9 @@ int main()
     mesh.eq_lhs = kron_sparse(MatrixXd::Identity(2,2).sparseView(), sparse_to_parameterization(mesh.inds_bF, mesh.V.rows()));
     mesh.eq_rhs = MatrixXd::Zero(2,1);
 
-    cout << mesh.eq_lhs.rows() << endl;
-    cout << mesh.eq_lhs.cols() << endl;
-    cout << MatrixXd::Identity(2,2) << endl;
+    //cout << mesh.eq_lhs.rows() << endl;
+    //cout << mesh.eq_lhs.cols() << endl;
+    //cout << MatrixXd::Identity(2,2) << endl;
 
     cout << "Init Optim Problem" << endl;
     OptimProblemIsoDist optimProblem(mesh, mesh.Vt, 1); 
@@ -60,7 +60,7 @@ int main()
         listOptimSolverAccQuadProx[i].solveTol(TolX, TolFun, num_iter);  
     }
 
-    cout << "Finish Program" << endl;
+    cout << "Finish Iterations" << endl;
 
     /*print_dimensions("V: ", mesh.V);
     //print_dimensions("F: ", mesh.F);
@@ -126,7 +126,7 @@ int main()
     igl::writeOBJ("presentacion_cow/cow_init_0.obj", mesh.V, Fi, Eigen::MatrixXd(), Eigen::MatrixXi(), mesh.Vt, Fi);
 
     //Create final parameterization
-    print_dimensions("xx: ", listOptimSolverAccQuadProx[0].x);
+    //print_dimensions("xx: ", listOptimSolverAccQuadProx[0].x);
     MatrixXd VerticeTexture = listOptimSolverAccQuadProx[0].x;
     matrix_reshape(VerticeTexture, VerticeTexture.rows()/2, 2);
 
