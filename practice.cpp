@@ -150,7 +150,7 @@ int main()
         0.597f,  0.770f,  0.761f,
         0.559f,  0.436f,  0.730f,
         0.359f,  0.583f,  0.152f,
-        0.483f,  0.596f,  0.789f,
+        0.0f,  0.0f,  0.0f,
         0.559f,  0.861f,  0.639f,
         0.195f,  0.548f,  0.859f,
         0.014f,  0.184f,  0.576f,
@@ -159,13 +159,13 @@ int main()
         0.676f,  0.977f,  0.133f,
         0.971f,  0.572f,  0.833f,
         0.140f,  0.616f,  0.489f,
-        0.997f,  0.513f,  0.064f,
+        0.0f,  0.0f,  0.0f,
         0.945f,  0.719f,  0.592f,
         0.543f,  0.021f,  0.978f,
         0.279f,  0.317f,  0.505f,
         0.167f,  0.620f,  0.077f,
         0.347f,  0.857f,  0.137f,
-        0.055f,  0.953f,  0.042f,
+        0.0f,  0.0f,  0.0f,
         0.714f,  0.505f,  0.345f,
         0.783f,  0.290f,  0.734f,
         0.722f,  0.645f,  0.174f,
@@ -184,6 +184,7 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
 
+    glClearColor(0.5f,0.2f,0.3f,1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
      // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
@@ -234,7 +235,7 @@ int main()
             0,                                // stride
             (void*)0                          // array buffer offset
         );
-        
+
         // Dibujar el triángulo !
         glDrawArrays(GL_TRIANGLES, 0, 12*3); // Empezar desde el vértice 0S; 3 vértices en total -> 1 triángulo
         glDisableVertexAttribArray(0);
