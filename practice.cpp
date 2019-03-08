@@ -15,6 +15,7 @@
 #include <GL/freeglut.h>
 #include <GL/glut.h>
 #include <GL/gl.h>
+#include "common/loadShader.cpp"
 //#include <igl/viewer/Viewer.h>
 //#include "libs/viewer/Viewer.h"
 //#include "class/smesh.h"
@@ -27,8 +28,10 @@ GLuint VBO;
 
 int main()
 {
+    cout << "load shaders" << endl;
+    cout << "load shaders" << endl;
     if(!glfwInit())
-    {
+    { 
         cout << "Error with GLFW" << endl;
         return -1;
     }
@@ -45,43 +48,49 @@ int main()
 
     if(window == NULL)
     {
-    	cout << "NO se puede abrir la ventana GLDW" << endl;
-    	glfwTerminate();
-		return -1;
+        cout << "NO se puede abrir la ventana GLDW" << endl;
+        glfwTerminate();
+        return -1;
     }
     glfwMakeContextCurrent(window);
     glewExperimental = true;
 
     if(glewInit() != GLEW_OK)
     {
-    	cout << "NO inicio GLEW" << endl;
-    	return -1;
+        cout << "NO inicio GLEW" << endl;
+        return -1;
     }
 
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
     //Tut 2
     GLuint VertexArrayID;
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
+    glGenVertexArrays(1, &VertexArrayID);
+    glBindVertexArray(VertexArrayID);
 
-	static const GLfloat g_vertex_buffer_data[] = {
-	   -1.0f, -1.0f, 0.0f,
-	   1.0f, -1.0f, 0.0f,
-	   0.0f,  1.0f, 0.0f,
-	};
+    cout << "create vertex" << endl;
+    static const GLfloat g_vertex_buffer_data[] = {
+       -1.0f, -1.0f, 0.0f,
+       1.0f, -1.0f, 0.0f,
+       0.0f,  1.0f, 0.0f,
+    };
 
-	GLuint vertexbuffer;
-	// Generar un buffer, poner el resultado en el vertexbuffer que acabamos de crear
-	glGenBuffers(1, &vertexbuffer);
-	// Los siguientes comandos le darán características especiales al 'vertexbuffer' 
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	// Darle nuestros vértices a  OpenGL.
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+    GLuint vertexbuffer;
+    // Generar un buffer, poner el resultado en el vertexbuffer que acabamos de crear
+    glGenBuffers(1, &vertexbuffer);
+    // Los siguientes comandos le darán características especiales al 'vertexbuffer' 
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    // Darle nuestros vértices a  OpenGL.
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 //Tut 2
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    GLuint programID = LoadShaders("common/SimpleVertexShader.vertexshader", "common/SimpleFragmentShader.fragmentshader" );
     do{
-    	glEnableVertexAttribArray(0);
+        glUseProgram(programID);
+        
+        glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 		glVertexAttribPointer(
 		   0,                  // atributo 0. No hay razón particular para el 0, pero debe corresponder en el shader.
@@ -94,16 +103,13 @@ int main()
 		// Dibujar el triángulo !
 		glDrawArrays(GL_TRIANGLES, 0, 3); // Empezar desde el vértice 0S; 3 vértices en total -> 1 triángulo
 		glDisableVertexAttribArray(0);
+       
     		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 
-
     }
     while(glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
-
-
-	
 
 
     return 0;
