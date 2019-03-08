@@ -23,7 +23,7 @@ void exportOptimProblem(OptimProblemIsoDist optimProblem);
 int main()
 {
     	//Example of gecko deformation
-	int num_iter =50;
+	int num_iter =100;
 	double TolX = 1e-10;
 	double TolFun = 1e-6;
 
@@ -127,7 +127,13 @@ int main()
     MatrixXd VerticeTexture = listOptimSolverAccQuadProx[0].x;
     matrix_reshape(VerticeTexture, VerticeTexture.rows()/2, 2);
 
-    igl::writeOBJ("cow_param_final.obj", mesh.V, Fi, Eigen::MatrixXd(), Eigen::MatrixXi(), VerticeTexture, Fi);
+    igl::writeOBJ("cow_param_x_final.obj", mesh.V, Fi, Eigen::MatrixXd(), Eigen::MatrixXi(), VerticeTexture, Fi);
+
+    /*MatrixXd VerticeText = listOptimSolverAccQuadProx[0].p;
+    matrix_reshape(VerticeText, VerticeText.rows()/2, 2);*/
+    MatrixXd VerticeText = VerticeTexture/100;
+
+    igl::writeOBJ("cow_param_final.obj", mesh.V, Fi, Eigen::MatrixXd(), Eigen::MatrixXi(), VerticeText, Fi);
 
 	return 0;
 }

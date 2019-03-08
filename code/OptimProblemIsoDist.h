@@ -83,10 +83,11 @@ OptimProblemIsoDist::~OptimProblemIsoDist()
 
 OptimProblemIsoDist::OptimProblemIsoDist(Param_State mesh, MatrixXd V0, int initArapIter)
 {
-    if(mesh.V.cols() == 2)
+   /*if(mesh.V.cols() == 2)
         this->V = mesh.V;
     else
-        this->V = V0;
+        this->V = V0;*/
+    this->V = mesh.V;
     this->F = mesh.F;
     this->eq_lhs = mesh.eq_lhs;
     this->eq_rhs = mesh.eq_rhs;
@@ -102,7 +103,11 @@ OptimProblemIsoDist::OptimProblemIsoDist(Param_State mesh, MatrixXd V0, int init
 
     //Compute transformations
     cout << "first step" << endl;
-    computeMeshTranformationCoeffsFullDim(this->F, this->V, this->T, this->areas);//Finished
+
+    if(mesh.V.cols() == 2)
+        computeMeshTranformationCoeffsFullDim(this->F, this->V, this->T, this->areas);//Finished
+    else
+        computeMeshTranformationCoeffsFlatenning(this->F, this->V, this->T, this->areas);
     //set initial configuration
     cout << "second step" << endl;
     initVertices(V0);//Falta

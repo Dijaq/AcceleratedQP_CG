@@ -16,7 +16,7 @@
 #include "../class/Param_State.h"
 #include "../mex/computeMeshTranformationCoeffsMex.h"
 #include "OptimSolverIterative.h"
-#include "../class/cuda_functions.cu"
+//#include "../class/cuda_functions.cu"
 
 using namespace std;
 using namespace cv;
@@ -68,7 +68,7 @@ public:
     ~OptimSolverAcclQuadProx();
     void setKappa(float kappa);
     void solveTol(float TolX, float TolFun, int max_iter);
-    void cuda_solveTol(float TolX, float TolFun, int max_iter);
+    //void cuda_solveTol(float TolX, float TolFun, int max_iter);
     void iterate();
     double min(double value1, double value2);
     void computeLineSearchCond(double &linesearch_cond_lhs, double &linesearch_cond_rhs);
@@ -188,9 +188,12 @@ void OptimSolverAcclQuadProx::setKappa(float kappa)
 
 void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 {
-     MatrixXd matrix = this->KKT_mat;
+    //MatrixXd matrix = this->KKT_mat;
     auto t11 = std::chrono::high_resolution_clock::now();
-    this->KKT_Class = DSparseLU(matrix);
+    //this->KKT_Class = DSparseLU(matrix);
+    SparseLU<SparseMatrix<double>> LU;
+    LU.analyzePattern(this->KKT_mat);
+    LU.factorize(this->KKT_mat);
     auto t12 = std::chrono::high_resolution_clock::now();
 
     auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
@@ -321,7 +324,16 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
 
 //        VectorXd prueba_lambda = this->KKT_Class.solve(this->KKT_rhs);
         auto t21 = std::chrono::high_resolution_clock::now();
-        this->p_lambda = this->KKT_Class.solve(this->KKT_rhs);
+        
+        this->p_lambda = (LU.rowsPermutation())*this->KKT_rhs;
+        LU.matrixL().solveInPlace(this->p_lambda);
+        LU.matrixU().solveInPlace(this->p_lambda);
+        this->p_lambda = (LU.colsPermutation().transpose())*this->p_lambda;
+        //this->p_lambda = this->KKT_Class.solve(this->KKT_rhs);
+
+        //export_mat_to_excel(this->p_lambda, "p"+to_string(i+1));
+
+
         auto t22 = std::chrono::high_resolution_clock::now();
         auto duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(t22 - t21).count();
         cout << "Iteration: " << i << " solve time: " <<duration2 << endl;
@@ -361,7 +373,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
             matrix_reshape(tempP,tempP.rows()/this->optimProblem.dim, this->optimProblem.dim);
             //cout << "useLineSearchStepLimit" << endl;
             //cout << "getstep: " << this->optimProblem.getMaxStep(tempY, tempP) << endl;
-            cout << "min: " << this->optimProblem.getMaxStep(tempY, tempP) << endl;
+            cout << "min: " << this->lineSearchStepSizeLimitFactor*this->optimProblem.getMaxStep(tempY, tempP) << endl;
             this->t = min(this->t_start, this->lineSearchStepSizeLimitFactor*this->optimProblem.getMaxStep(tempY, tempP));
         }
         else
@@ -400,7 +412,7 @@ void OptimSolverAcclQuadProx::solveTol(float TolX, float TolFun, int max_iter)
     }
 }
 
-void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_iter)
+/*void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_iter)
 {
     MatrixXd matrix = this->KKT_mat;
     this->KKT_Class = DSparseLU(matrix);
@@ -409,13 +421,13 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
     int filas = matrix.rows();
     int columnas = matrix.cols();
 
-/*Start Section of CUDA*/
+Start Section of CUDA
     auto t11 = std::chrono::high_resolution_clock::now();
     float *L = (float *)malloc(N * N * sizeof(float));
     float *xB = (float *)malloc(1 * N * sizeof(float));
     float *U = (float *)malloc(N * N * sizeof(float));//This is the complete matrix
 
-    /*for(int i=0; i<N; i++) {
+    for(int i=0; i<N; i++) {
         L[i] = 0.0f;
         for (int j=0; j<N; j++) 
             if (i == j) L[i * N + j] = 1.0f;
@@ -424,7 +436,7 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
     for (int i=0; i<N; i++) {
         for (int j=0; j<N; j++) 
             U[i * N + j] = matrix(i,j);
-    }*/
+    }
 
     for (int i=0; i<N; i++) {
         for (int j=0; j<N; j++) 
@@ -454,17 +466,17 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
     dim3 dimBloques(B, B);
     
     //LU factorization
-    /*for(int selected=0; selected<filas-1; selected++) 
+    //for(int selected=0; selected<filas-1; selected++) 
     {
         cuda_LU_factorization<<<dimBloques, dimThreadsBloque>>>(dev_U, dev_L, filas, columnas, selected, selected);
-    }*/
+    }//
 
     auto t12 = std::chrono::high_resolution_clock::now();
 
     auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(t12 - t11).count();
     cout << "Time AQP2: " << duration1 << endl;
 
-/*En section CUDA*/
+//En section CUDA
 
     this->p = VectorXd::Zero(this->optimProblem.n_vars,1);
     this->y_fgrad = VectorXd::Zero(this->optimProblem.n_vars,1);
@@ -517,7 +529,8 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
             
         }
 
-/*Create CUDA values*/
+<<<<<<< da73df4741a30907099d97d24bce703a034b95b2
+//Create CUDA values
         auto t21 = std::chrono::high_resolution_clock::now();
 
         float *temp_U;
@@ -565,7 +578,7 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
         //export_mat_to_excel(prueba_lambda, "prueba_lambda");
         //export_mat_to_excel(this->p_lambda, "ValidarDatos/c_p_lambda"+to_string(i));
 
-/*End Cuda values*/
+//End Cuda values
 
         for(int i=0; i<this->optimProblem.n_vars; i++)
         {
@@ -638,7 +651,7 @@ void OptimSolverAcclQuadProx::cuda_solveTol(float TolX, float TolFun, int max_it
     cudaFree(U);
     cudaFree(xB);
 
-}
+}*/
 
 
 void OptimSolverAcclQuadProx::iterate()
